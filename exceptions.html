@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>异常处理队列 · 回评确认闸</title>
+<style>
+    html { scrollbar-width: none; }
+    body { scrollbar-width: none; }
+    body::-webkit-scrollbar { display: none; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .wire-dots {
+      background-image: radial-gradient(circle, #d4d4d4 0.5px, transparent 0.5px);
+      background-size: 12px 12px;
+    }
+    .hatch {
+      background-image: repeating-linear-gradient(135deg, #fafafa, #fafafa 7px, #f1f1f1 7px, #f1f1f1 8px);
+    }
+    details > summary { list-style: none; }
+    details > summary::-webkit-details-marker { display: none; }
+    input[type="checkbox"], textarea, select { accent-color: #171717; }
+    [hidden] { display: none !important; }
+  </style>
+<link href="assets/prototype.css" rel="stylesheet"/><meta content="回评 Agent 人工确认闸四屏交互原型，使用合成数据演示，不产生真实发送。" name="description"/><link href="assets/favicon.svg" rel="icon" type="image/svg+xml"/></head>
+<body class="min-h-screen bg-neutral-100 text-neutral-900 antialiased text-[13px] leading-6"><div class="demo-notice" role="note">
+<strong>公开交互原型</strong>
+<span>全部品牌、评论、人员与数据均为虚构；操作仅模拟前端状态，不产生真实发送。</span>
+</div>
+<header class="bg-white border-b border-neutral-300">
+<div class="max-w-[1560px] mx-auto px-6 h-16 flex items-center justify-between gap-8">
+<div class="flex items-center gap-7 min-w-0">
+<a class="flex items-center gap-3 shrink-0" href="queue.html">
+<span class="w-8 h-8 border border-neutral-900 flex items-center justify-center">
+<svg aria-hidden="true" class="lucide lucide-shield-check text-[17px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12l2 2l4-4"></path></g></svg>
+</span>
+<span>
+<span class="block text-[14px] font-semibold tracking-wide leading-5">回评确认闸</span>
+<span class="block text-[9px] text-neutral-500 mono tracking-[0.14em] leading-4">REVIEW CONFIRM GATE</span>
+</span>
+</a>
+<span class="h-7 w-px bg-neutral-300"></span>
+<nav class="flex items-center gap-1 text-[13px]">
+<a class="px-3 py-2 text-neutral-600 hover:bg-neutral-100 flex items-center gap-2" href="queue.html">
+            确认队列
+            <span class="mono text-[10px] border border-neutral-400 px-1">18</span>
+</a>
+<a class="px-3 py-2 bg-neutral-900 text-white flex items-center gap-2" href="exceptions.html">
+            异常处理
+            <span class="mono text-[10px] border border-white/40 px-1">8</span>
+</a>
+<a class="px-3 py-2 text-neutral-600 hover:bg-neutral-100" href="review.html">单条审阅</a>
+</nav>
+</div>
+<div class="flex items-center gap-5 shrink-0">
+<div class="hidden xl:flex items-center gap-2 border border-neutral-300 px-2.5 py-1.5 text-[11px] text-neutral-600">
+<span class="w-1.5 h-1.5 bg-neutral-900"></span>
+          自动发送通道：不存在
+        </div>
+<div class="flex items-center gap-2.5">
+<span class="w-8 h-8 border border-neutral-400 flex items-center justify-center text-[12px] font-medium">林</span>
+<span class="leading-4">
+<span class="block text-[12px] font-medium">林晓</span>
+<span class="block text-[10px] text-neutral-500">客服运营 · 华东组</span>
+</span>
+</div>
+</div>
+</div>
+</header>
+<div class="bg-neutral-900 text-white text-[12px]">
+<div class="max-w-[1560px] mx-auto px-6 py-2.5 flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2.5">
+<svg aria-hidden="true" class="lucide lucide-triangle-alert text-[15px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m21.73 18l-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3M12 9v4m0 4h.01" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>所有回评须经人工确认后发送，系统不会自动发出任何回复。</span>
+</div>
+<span class="mono text-[10px] text-neutral-300 tracking-wider">异常分流 · 不产生自动发送</span>
+</div>
+</div>
+<main class="max-w-[1560px] mx-auto px-6 py-6">
+<div class="flex flex-wrap items-end justify-between gap-4 mb-5">
+<div>
+<div class="flex items-center gap-2 text-[10px] text-neutral-500 mono mb-1">
+<span>EXCEPTION QUEUE</span>
+<span>/</span>
+<span>2026-11-03</span>
+<span>/</span>
+<span>仅人工处置</span>
+</div>
+<h1 class="text-[22px] leading-8 font-semibold tracking-tight">异常处理队列</h1>
+<p class="text-[12px] text-neutral-500 mt-1">按六道分流结果分组处置。异常组不会生成可发送回评，所有放行与例外操作均需填写理由并留痕。</p>
+</div>
+<a class="inline-flex items-center gap-1.5 h-9 px-3.5 border border-neutral-300 bg-white hover:bg-neutral-50 text-[11px]" href="queue.html">
+<svg aria-hidden="true" class="lucide lucide-arrow-left text-[13px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m12 19l-7-7l7-7m7 7H5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        返回确认队列
+      </a>
+</div>
+<section class="grid grid-cols-2 lg:grid-cols-4 border border-neutral-300 bg-white mb-4">
+<div class="p-4 border-r border-b lg:border-b-0 border-neutral-300">
+<div class="flex items-center justify-between text-[10px] text-neutral-500">
+<span>待处置总数</span>
+<svg aria-hidden="true" class="lucide lucide-list-checks text-[13px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M13 5h8m-8 7h8m-8 7h8M3 17l2 2l4-4M3 7l2 2l4-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<div class="mt-1.5 flex items-end gap-1.5">
+<span class="mono text-[26px] leading-none font-semibold">8</span>
+<span class="text-[10px] text-neutral-500 mb-0.5">条</span>
+</div>
+</div>
+<div class="p-4 border-b lg:border-b-0 lg:border-r border-neutral-300">
+<div class="flex items-center justify-between text-[10px] text-neutral-500">
+<span>低置信转人工</span>
+<svg aria-hidden="true" class="lucide lucide-gauge text-[13px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m12 14l4-4M3.34 19a10 10 0 1 1 17.32 0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<div class="mt-1.5 flex items-end gap-1.5">
+<span class="mono text-[26px] leading-none font-semibold">3</span>
+<span class="text-[10px] text-neutral-500 mb-0.5">条 · 已置顶</span>
+</div>
+</div>
+<div class="p-4 border-r border-neutral-300">
+<div class="flex items-center justify-between text-[10px] text-neutral-500">
+<span>今日已处置</span>
+<svg aria-hidden="true" class="lucide lucide-circle-check text-[13px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="m9 12l2 2l4-4"></path></g></svg>
+</div>
+<div class="mt-1.5 flex items-end gap-1.5">
+<span class="mono text-[26px] leading-none font-semibold">11</span>
+<span class="text-[10px] text-neutral-500 mb-0.5">条 · 全部留痕</span>
+</div>
+</div>
+<div class="p-4">
+<div class="flex items-center justify-between text-[10px] text-neutral-500">
+<span>自动发送路径</span>
+<svg aria-hidden="true" class="lucide lucide-lock text-[13px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect height="11" rx="2" ry="2" width="18" x="3" y="11"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></g></svg>
+</div>
+<div class="mt-1.5 flex items-end gap-1.5">
+<span class="text-[22px] leading-none font-semibold">不存在</span>
+<span class="text-[10px] text-neutral-500 mb-0.5">人工触发</span>
+</div>
+</div>
+</section>
+<section class="border border-neutral-300 bg-white mb-5">
+<div class="px-4 py-3 flex flex-wrap items-center justify-between gap-3 border-b border-neutral-300">
+<div class="flex items-center gap-2">
+<svg aria-hidden="true" class="lucide lucide-route text-[15px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="6" cy="19" r="3"></circle><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"></path><circle cx="18" cy="5" r="3"></circle></g></svg>
+<span class="text-[11px] font-medium">处置口径</span>
+</div>
+<span class="text-[9px] text-neutral-500">异常分流不进入自动回复路径</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-neutral-200">
+<div class="px-4 py-3 flex gap-2.5">
+<span class="mono text-[10px] text-neutral-400">01</span>
+<p class="text-[10px] leading-5 text-neutral-600">六道分流先于人工处理：仅「正常回复」与「低置信转人工」可生成可审阅草稿。</p>
+</div>
+<div class="px-4 py-3 flex gap-2.5">
+<span class="mono text-[10px] text-neutral-400">02</span>
+<p class="text-[10px] leading-5 text-neutral-600">例外放行、例外人工回复、补充档案等操作须填写理由，理由一并进入操作留痕。</p>
+</div>
+<div class="px-4 py-3 flex gap-2.5">
+<span class="mono text-[10px] text-neutral-400">03</span>
+<p class="text-[10px] leading-5 text-neutral-600">任何处置都不会自动发出回评；如产生草稿，仍需进入人工确认闸二次确认。</p>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_348px] gap-5 items-start">
+<div class="space-y-4 min-w-0">
+<section class="bg-white border border-neutral-900">
+<div class="bg-neutral-900 text-white px-4 py-1.5 flex items-center justify-between gap-2">
+<span class="text-[9px] tracking-wider">置顶分组 · 优先处理</span>
+<span class="mono text-[9px] text-neutral-300">LOW CONFIDENCE / MANUAL REVIEW</span>
+</div>
+<div class="px-4 py-3.5 border-b border-neutral-300 flex flex-wrap items-start justify-between gap-3">
+<div class="flex items-start gap-3">
+<span class="mono text-[10px] w-6 h-6 border border-neutral-900 flex items-center justify-center shrink-0 mt-0.5">01</span>
+<div>
+<div class="flex items-center gap-2">
+<h2 class="text-[15px] font-semibold">低置信转人工</h2>
+<span class="mono text-[9px] border border-neutral-400 px-1.5 py-0.5">3 条</span>
+</div>
+<p class="text-[10px] text-neutral-500 mt-0.5">分流置信度低于阈值、检索证据不足或决策余量过小，需人工复核。</p>
+</div>
+</div>
+<span class="text-[9px] text-neutral-500 border border-dashed border-neutral-400 px-2 py-1">不生成可自动发送的回评</span>
+</div>
+<div class="divide-y divide-neutral-200">
+<div class="px-4 py-4 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_210px] gap-4" data-item-id="EX-20261103-0839" data-item-title="沐岚直播间赠品差异">
+<div class="min-w-0">
+<div class="flex flex-wrap items-center gap-2 mb-1.5">
+<span class="text-[10px] font-medium">沐岚</span>
+<span class="text-[9px] border border-neutral-300 px-1 py-0.5">正常回复 → 低置信</span>
+<span class="text-[9px] text-neutral-500 mono">RV-20261103-0839</span>
+<span class="ml-auto inline-flex items-center gap-1 text-[9px] border border-neutral-400 px-1.5 py-0.5" id="status-EX-20261103-0839">
+<span class="w-1 h-1 bg-neutral-500"></span>待处置
+                  </span>
+</div>
+<p class="text-[12px] leading-5">直播间说买一送一，收到的却是小样，申请补发一直没人回复。</p>
+<div class="mt-2.5 border border-neutral-300 border-dashed bg-neutral-50 px-2.5 py-2">
+<div class="flex flex-wrap items-center gap-2 text-[9px]">
+<span class="border border-neutral-900 bg-neutral-900 text-white px-1.5 py-0.5">置信度低于阈值</span>
+<span class="mono text-neutral-600">0.58 &lt; 阈值 0.72</span>
+<span class="text-neutral-400">/</span>
+<span class="text-neutral-600">命中售后风险词，但品牌档案缺口 1 条</span>
+</div>
+</div>
+<div class="mt-2 flex flex-wrap items-center gap-3 text-[9px] text-neutral-500">
+<span>分流：正常回复 / 低置信转人工</span>
+<span>评论时间 14:02</span>
+<span>已等待 34 分钟</span>
+</div>
+</div>
+<div class="grid grid-cols-2 lg:grid-cols-1 gap-2 content-start">
+<a class="h-8 px-3 border border-neutral-900 bg-neutral-900 text-white text-[10px] inline-flex items-center justify-center gap-1.5 hover:bg-neutral-700" href="review.html">
+<svg aria-hidden="true" class="lucide lucide-eye text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M2.062 12.348a1 1 0 0 1 0-.696a10.75 10.75 0 0 1 19.876 0a1 1 0 0 1 0 .696a10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></g></svg>
+                  打开审阅
+                </a>
+<button class="h-8 px-3 border border-neutral-300 bg-white text-[10px] hover:bg-neutral-50 inline-flex items-center justify-center gap-1.5" data-action="archive" data-item="EX-20261103-0839" type="button">
+<svg aria-hidden="true" class="lucide lucide-folder-plus text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M12 10v6m-3-3h6m5 7a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                  标记补充档案
+                </button>
+</div>
+</div>
+<div class="px-4 py-4 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_210px] gap-4" data-item-id="EX-20261103-0824" data-item-title="柏泽香味正品疑问">
+<div class="min-w-0">
+<div class="flex flex-wrap items-center gap-2 mb-1.5">
+<span class="text-[10px] font-medium">柏泽</span>
+<span class="text-[9px] border border-neutral-300 px-1 py-0.5">正常回复 → 低置信</span>
+<span class="text-[9px] text-neutral-500 mono">RV-20261103-0824</span>
+<span class="ml-auto inline-flex items-center gap-1 text-[9px] border border-neutral-400 px-1.5 py-0.5" id="status-EX-20261103-0824">
+<span class="w-1 h-1 bg-neutral-500"></span>待处置
+                  </span>
+</div>
+<p class="text-[12px] leading-5">香味有点重，不确定是不是正品，能给个解释吗？</p>
+<div class="mt-2.5 border border-neutral-300 border-dashed bg-neutral-50 px-2.5 py-2">
+<div class="flex flex-wrap items-center gap-2 text-[9px]">
+<span class="border border-neutral-900 bg-neutral-900 text-white px-1.5 py-0.5">检索低置信</span>
+<span class="mono text-neutral-600">档案检索相似度 0.63</span>
+<span class="text-neutral-400">/</span>
+<span class="text-neutral-600">同款包装商品 2 个，品牌证据不足</span>
+</div>
+</div>
+<div class="mt-2 flex flex-wrap items-center gap-3 text-[9px] text-neutral-500">
+<span>分流：正常回复 / 低置信转人工</span>
+<span>评论时间 13:21</span>
+<span>已等待 1 小时 15 分</span>
+</div>
+</div>
+<div class="grid grid-cols-2 lg:grid-cols-1 gap-2 content-start">
+<a class="h-8 px-3 border border-neutral-900 bg-neutral-900 text-white text-[10px] inline-flex items-center justify-center gap-1.5 hover:bg-neutral-700" href="review.html">
+<svg aria-hidden="true" class="lucide lucide-eye text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M2.062 12.348a1 1 0 0 1 0-.696a10.75 10.75 0 0 1 19.876 0a1 1 0 0 1 0 .696a10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></g></svg>
+                  打开审阅
+                </a>
+<button class="h-8 px-3 border border-neutral-300 bg-white text-[10px] hover:bg-neutral-50 inline-flex items-center justify-center gap-1.5" data-action="archive" data-item="EX-20261103-0824" type="button">
+<svg aria-hidden="true" class="lucide lucide-folder-plus text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M12 10v6m-3-3h6m5 7a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                  标记补充档案
+                </button>
+</div>
+</div>
+<div class="px-4 py-4 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_210px] gap-4" data-item-id="EX-20261103-0761" data-item-title="精华产品归属疑问">
+<div class="min-w-0">
+<div class="flex flex-wrap items-center gap-2 mb-1.5">
+<span class="text-[10px] font-medium">待确认品牌</span>
+<span class="text-[9px] border border-neutral-300 px-1 py-0.5">产品归属待确认 → 低置信</span>
+<span class="text-[9px] text-neutral-500 mono">RV-20261103-0761</span>
+<span class="ml-auto inline-flex items-center gap-1 text-[9px] border border-neutral-400 px-1.5 py-0.5" id="status-EX-20261103-0761">
+<span class="w-1 h-1 bg-neutral-500"></span>待处置
+                  </span>
+</div>
+<p class="text-[12px] leading-5">这款精华是你们家的吗？我在别家看到同款包装。</p>
+<div class="mt-2.5 border border-neutral-300 border-dashed bg-neutral-50 px-2.5 py-2">
+<div class="flex flex-wrap items-center gap-2 text-[9px]">
+<span class="border border-neutral-900 bg-neutral-900 text-white px-1.5 py-0.5">决策余量触发</span>
+<span class="mono text-neutral-600">Top1 0.54 / Top2 0.50 / 余量 0.04</span>
+<span class="text-neutral-400">/</span>
+<span class="text-neutral-600">多品牌同款，归属未达自动判定线</span>
+</div>
+</div>
+<div class="mt-2 flex flex-wrap items-center gap-3 text-[9px] text-neutral-500">
+<span>分流：产品归属待确认 / 低置信转人工</span>
+<span>评论时间 11:06</span>
+<span>最早积压 · 已等待 3 小时 12 分</span>
+</div>
+</div>
+<div class="grid grid-cols-2 lg:grid-cols-1 gap-2 content-start">
+<a class="h-8 px-3 border border-neutral-900 bg-neutral-900 text-white text-[10px] inline-flex items-center justify-center gap-1.5 hover:bg-neutral-700" href="review.html">
+<svg aria-hidden="true" class="lucide lucide-eye text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M2.062 12.348a1 1 0 0 1 0-.696a10.75 10.75 0 0 1 19.876 0a1 1 0 0 1 0 .696a10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></g></svg>
+                  打开审阅
+                </a>
+<button class="h-8 px-3 border border-neutral-300 bg-white text-[10px] hover:bg-neutral-50 inline-flex items-center justify-center gap-1.5" data-action="assign" data-item="EX-20261103-0761" type="button">
+<svg aria-hidden="true" class="lucide lucide-git-branch text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M15 6a9 9 0 0 0-9 9V3"></path><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle></g></svg>
+                  指定归属
+                </button>
+</div>
+</div>
+</div>
+</section>
+<section class="bg-white border border-neutral-300" data-group="不建议回复">
+<div class="px-4 py-3 border-b border-neutral-300 flex flex-wrap items-start justify-between gap-2">
+<div class="flex items-start gap-3">
+<span class="mono text-[10px] w-6 h-6 border border-neutral-300 flex items-center justify-center shrink-0 mt-0.5">02</span>
+<div>
+<div class="flex items-center gap-2">
+<h2 class="text-[14px] font-medium">不建议回复</h2>
+<span class="mono text-[9px] border border-neutral-300 px-1.5 py-0.5">1 条</span>
+<span class="text-[9px] border border-neutral-300 px-1.5 py-0.5">含明星应援</span>
+</div>
+<p class="text-[10px] text-neutral-500 mt-0.5">与商品体验无关或命中不回复规则。确认不回复，或填写理由例外放行。</p>
+</div>
+</div>
+<span class="text-[9px] text-neutral-500">确认后不产生回评</span>
+</div>
+<div class="px-4 py-4 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_250px] gap-4" data-item-id="EX-20261103-0742" data-item-title="明星应援评论">
+<div class="min-w-0">
+<div class="flex flex-wrap items-center gap-2 mb-1.5">
+<span class="text-[10px] font-medium">沐岚</span>
+<span class="text-[9px] border border-neutral-300 px-1 py-0.5">明星应援</span>
+<span class="text-[9px] text-neutral-500 mono">CM-8842183</span>
+<span class="ml-auto inline-flex items-center gap-1 text-[9px] border border-neutral-400 px-1.5 py-0.5" id="status-EX-20261103-0742">
+<span class="w-1 h-1 bg-neutral-500"></span>待处置
+                </span>
+</div>
+<p class="text-[12px] leading-5">哥哥同款必须支持！姐妹们冲！</p>
+<div class="mt-2.5 flex flex-wrap items-center gap-2">
+<span class="text-[9px] border border-neutral-400 px-1.5 py-0.5">命中规则 SR-04 · 明星应援</span>
+<span class="text-[9px] text-neutral-500">评论未提及商品或使用体验，不建议品牌方介入回复。</span>
+</div>
+<div class="mt-2 flex flex-wrap items-center gap-3 text-[9px] text-neutral-500">
+<span>评论时间 12:29</span>
+<span>平台：天猫旗舰店</span>
+<span>风险等级：低</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 content-start">
+<button class="h-8 px-2.5 border border-neutral-900 bg-neutral-900 text-white text-[10px] hover:bg-neutral-700 inline-flex items-center justify-center gap-1.5" data-action="noReply" data-item="EX-20261103-0742" type="button">
+<svg aria-hidden="true" class="lucide lucide-ban text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M4.929 4.929L19.07 19.071"></path></g></svg>
+                确认不回复
+              </button>
+<button class="h-8 px-2.5 border border-neutral-300 bg-white text-[10px] hover:bg-neutral-50 inline-flex items-center justify-center gap-1.5" data-action="release" data-item="EX-20261103-0742" type="button">
+<svg aria-hidden="true" class="lucide lucide-unlock text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect height="11" rx="2" ry="2" width="18" x="3" y="11"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></g></svg>
+                例外放行
+              </button>
+</div>
+</div>
+</section>
+<section class="bg-white border border-neutral-300" data-group="售后复核">
+<div class="px-4 py-3 border-b border-neutral-300 flex flex-wrap items-start justify-between gap-2">
+<div class="flex items-start gap-3">
+<span class="mono text-[10px] w-6 h-6 border border-neutral-300 flex items-center justify-center shrink-0 mt-0.5">03</span>
+<div>
+<div class="flex items-center gap-2">
+<h2 class="text-[14px] font-medium">售后复核</h2>
+<span class="mono text-[9px] border border-neutral-300 px-1.5 py-0.5">1 条</span>
+<span class="text-[9px] border border-neutral-400 px-1.5 py-0.5">高优先级</span>
+</div>
+<p class="text-[10px] text-neutral-500 mt-0.5">涉及使用不适或售后承诺。转售后工单处理，建议话术仅供售后参考，不直接发送。</p>
+</div>
+</div>
+<span class="text-[9px] text-neutral-500">售后流程接手</span>
+</div>
+<div class="px-4 py-4 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_250px] gap-4" data-item-id="EX-20261103-0718" data-item-title="面霜使用泛红售后">
+<div class="min-w-0">
+<div class="flex flex-wrap items-center gap-2 mb-1.5">
+<span class="text-[10px] font-medium">屿森</span>
+<span class="text-[9px] border border-neutral-300 px-1 py-0.5">过敏 / 泛红</span>
+<span class="text-[9px] text-neutral-500 mono">CM-8842091</span>
+<span class="ml-auto inline-flex items-center gap-1 text-[9px] border border-neutral-400 px-1.5 py-0.5" id="status-EX-20261103-0718">
+<span class="w-1 h-1 bg-neutral-500"></span>待处置
+                </span>
+</div>
+<p class="text-[12px] leading-5">面霜用了两天脸颊泛红，想退货，客服一直让我等。</p>
+<div class="mt-2.5 flex flex-wrap items-center gap-2">
+<span class="text-[9px] border border-neutral-400 px-1.5 py-0.5">售后风险 0.91</span>
+<span class="text-[9px] text-neutral-500">命中使用不适与退货意图；不能在评论区承诺退款结果。</span>
+</div>
+<div class="mt-2 flex flex-wrap items-center gap-3 text-[9px] text-neutral-500">
+<span>订单 2026102600**1937</span>
+<span>已签收 8 天</span>
+<span>当前无售后工单</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 content-start">
+<button class="h-8 px-2.5 border border-neutral-900 bg-neutral-900 text-white text-[10px] hover:bg-neutral-700 inline-flex items-center justify-center gap-1.5" data-action="ticket" data-item="EX-20261103-0718" type="button">
+<svg aria-hidden="true" class="lucide lucide-headphones text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                转售后工单
+              </button>
+<button class="h-8 px-2.5 border border-neutral-300 bg-white text-[10px] hover:bg-neutral-50 inline-flex items-center justify-center gap-1.5" data-action="script" data-item="EX-20261103-0718" type="button">
+<svg aria-hidden="true" class="lucide lucide-file-text text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5M10 9H8m8 4H8m8 4H8"></path></g></svg>
+                查看建议话术
+              </button>
+</div>
+</div>
+</section>
+<section class="bg-white border border-neutral-300" data-group="产品归属待确认">
+<div class="px-4 py-3 border-b border-neutral-300 flex flex-wrap items-start justify-between gap-2">
+<div class="flex items-start gap-3">
+<span class="mono text-[10px] w-6 h-6 border border-neutral-300 flex items-center justify-center shrink-0 mt-0.5">04</span>
+<div>
+<div class="flex items-center gap-2">
+<h2 class="text-[14px] font-medium">产品归属待确认</h2>
+<span class="mono text-[9px] border border-neutral-300 px-1.5 py-0.5">1 条</span>
+</div>
+<p class="text-[10px] text-neutral-500 mt-0.5">评论无法确定对应品牌或商品。人工指定归属后重新生成草稿，仍须人工确认。</p>
+</div>
+</div>
+<span class="text-[9px] text-neutral-500">商品匹配 0.41</span>
+</div>
+<div class="px-4 py-4 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_250px] gap-4" data-item-id="EX-20261103-0695" data-item-title="精华同款包装归属">
+<div class="min-w-0">
+<div class="flex flex-wrap items-center gap-2 mb-1.5">
+<span class="text-[10px] font-medium">品牌未识别</span>
+<span class="text-[9px] border border-neutral-300 px-1 py-0.5">多品牌同款</span>
+<span class="text-[9px] text-neutral-500 mono">CM-8841962</span>
+<span class="ml-auto inline-flex items-center gap-1 text-[9px] border border-neutral-400 px-1.5 py-0.5" id="status-EX-20261103-0695">
+<span class="w-1 h-1 bg-neutral-500"></span>待处置
+                </span>
+</div>
+<p class="text-[12px] leading-5">这款精华是你们家的吗？我在别家看到同款包装。</p>
+<div class="mt-2.5 flex flex-wrap items-center gap-2">
+<span class="text-[9px] border border-neutral-400 px-1.5 py-0.5">商品匹配 0.41</span>
+<span class="text-[9px] text-neutral-500">候选：屿森 × 1、沐岚 × 1、柏泽 × 1；无法确定品牌归属。</span>
+</div>
+<details class="mt-2">
+<summary class="inline-flex items-center gap-1 text-[9px] border border-neutral-300 px-1.5 py-0.5 cursor-pointer hover:bg-neutral-50">
+<svg aria-hidden="true" class="lucide lucide-search text-[11px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m21 21l-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></g></svg>
+                  查看匹配证据
+                  <svg aria-hidden="true" class="lucide lucide-chevron-down text-[11px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m6 9l6 6l6-6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</summary>
+<div class="mt-2 border border-neutral-200 bg-neutral-50 p-2.5 text-[9px] text-neutral-600 leading-5">
+                  标题向量相似度 0.41；主图感知哈希冲突 2 组；买家未提供订单号；品牌档案均无唯一命中。建议人工指定品牌与商品后再生成。
+                </div>
+</details>
+</div>
+<div class="grid grid-cols-1 gap-2 content-start">
+<button class="h-8 px-2.5 border border-neutral-900 bg-neutral-900 text-white text-[10px] hover:bg-neutral-700 inline-flex items-center justify-center gap-1.5" data-action="assign" data-item="EX-20261103-0695" type="button">
+<svg aria-hidden="true" class="lucide lucide-git-branch text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M15 6a9 9 0 0 0-9 9V3"></path><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle></g></svg>
+                指定归属并重新生成
+              </button>
+<p class="text-[9px] text-neutral-500 leading-4 text-center">重新生成后仍需人工确认，不会自动发送。</p>
+</div>
+</div>
+</section>
+<section class="bg-white border border-neutral-300" data-group="无内容风险">
+<div class="px-4 py-3 border-b border-neutral-300 flex flex-wrap items-start justify-between gap-2">
+<div class="flex items-start gap-3">
+<span class="mono text-[10px] w-6 h-6 border border-neutral-300 flex items-center justify-center shrink-0 mt-0.5">05</span>
+<div>
+<div class="flex items-center gap-2">
+<h2 class="text-[14px] font-medium">无内容风险</h2>
+<span class="mono text-[9px] border border-neutral-300 px-1.5 py-0.5">1 条</span>
+</div>
+<p class="text-[10px] text-neutral-500 mt-0.5">评论无可回应内容或疑似无效文本。转人工跟进，不生成自动回评。</p>
+</div>
+</div>
+<span class="text-[9px] text-neutral-500">无实质内容</span>
+</div>
+<div class="px-4 py-4 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_250px] gap-4" data-item-id="EX-20261103-0661" data-item-title="无内容评论">
+<div class="min-w-0">
+<div class="flex flex-wrap items-center gap-2 mb-1.5">
+<span class="text-[10px] font-medium">初萃</span>
+<span class="text-[9px] border border-neutral-300 px-1 py-0.5">无实质内容</span>
+<span class="text-[9px] text-neutral-500 mono">CM-8841830</span>
+<span class="ml-auto inline-flex items-center gap-1 text-[9px] border border-neutral-400 px-1.5 py-0.5" id="status-EX-20261103-0661">
+<span class="w-1 h-1 bg-neutral-500"></span>待处置
+                </span>
+</div>
+<p class="text-[12px] leading-5 mono text-neutral-600">……</p>
+<div class="mt-2.5 flex flex-wrap items-center gap-2">
+<span class="text-[9px] border border-neutral-400 px-1.5 py-0.5">内容风险 0.87</span>
+<span class="text-[9px] text-neutral-500">仅含标点，无可回应语义；暂不生成话术，避免误回复。</span>
+</div>
+<details class="mt-2">
+<summary class="inline-flex items-center gap-1 text-[9px] border border-neutral-300 px-1.5 py-0.5 cursor-pointer hover:bg-neutral-50">
+<svg aria-hidden="true" class="lucide lucide-info text-[11px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4m0-4h.01"></path></g></svg>
+                  查看风险说明
+                  <svg aria-hidden="true" class="lucide lucide-chevron-down text-[11px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m6 9l6 6l6-6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</summary>
+<div class="mt-2 border border-neutral-200 bg-neutral-50 p-2.5 text-[9px] text-neutral-600 leading-5">
+                  文本长度 2 字符，无商品提及、无情绪指向、无售后意图。按内容风险规则归类为“无内容风险”，仅转人工确认是否继续跟进。
+                </div>
+</details>
+</div>
+<div class="grid grid-cols-1 gap-2 content-start">
+<button class="h-8 px-2.5 border border-neutral-900 bg-neutral-900 text-white text-[10px] hover:bg-neutral-700 inline-flex items-center justify-center gap-1.5" data-action="follow" data-item="EX-20261103-0661" type="button">
+<svg aria-hidden="true" class="lucide lucide-user-round-check text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M2 21a8 8 0 0 1 13.292-6"></path><circle cx="10" cy="8" r="5"></circle><path d="m16 19l2 2l4-4"></path></g></svg>
+                转人工跟进
+              </button>
+<p class="text-[9px] text-neutral-500 leading-4 text-center">仅创建跟进任务，不发送回评。</p>
+</div>
+</div>
+</section>
+<section class="bg-white border border-neutral-300" data-group="空标题商品">
+<div class="px-4 py-3 border-b border-neutral-300 flex flex-wrap items-start justify-between gap-2">
+<div class="flex items-start gap-3">
+<span class="mono text-[10px] w-6 h-6 border border-neutral-300 flex items-center justify-center shrink-0 mt-0.5">06</span>
+<div>
+<div class="flex items-center gap-2">
+<h2 class="text-[14px] font-medium">空标题商品</h2>
+<span class="mono text-[9px] border border-neutral-300 px-1.5 py-0.5">1 条</span>
+</div>
+<p class="text-[10px] text-neutral-500 mt-0.5">商品标题为空，无法绑定标准商品话术。按规则处理，或填写理由例外人工回复。</p>
+</div>
+</div>
+<span class="text-[9px] text-neutral-500">商品 ID 存在 / 标题为空</span>
+</div>
+<div class="px-4 py-4 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_250px] gap-4" data-item-id="EX-20261103-0634" data-item-title="空标题商品评论">
+<div class="min-w-0">
+<div class="flex flex-wrap items-center gap-2 mb-1.5">
+<span class="text-[10px] font-medium">未识别品牌</span>
+<span class="text-[9px] border border-neutral-300 px-1 py-0.5">空标题商品</span>
+<span class="text-[9px] text-neutral-500 mono">CM-8841744</span>
+<span class="ml-auto inline-flex items-center gap-1 text-[9px] border border-neutral-400 px-1.5 py-0.5" id="status-EX-20261103-0634">
+<span class="w-1 h-1 bg-neutral-500"></span>待处置
+                </span>
+</div>
+<p class="text-[12px] leading-5">东西不错，会再买。</p>
+<div class="mt-2.5 flex flex-wrap items-center gap-2">
+<span class="text-[9px] border border-neutral-400 px-1.5 py-0.5">标题为空</span>
+<span class="text-[9px] text-neutral-500">商品 ID 已存在，但标题与类目均为空，无法匹配标准话术。</span>
+</div>
+<div class="mt-2 text-[9px] text-neutral-500 mono">SKU-EMPTY-0921 · 店铺：柏泽</div>
+</div>
+<div class="grid grid-cols-1 gap-2 content-start">
+<button class="h-8 px-2.5 border border-neutral-900 bg-neutral-900 text-white text-[10px] hover:bg-neutral-700 inline-flex items-center justify-center gap-1.5" data-action="rule" data-item="EX-20261103-0634" type="button">
+<svg aria-hidden="true" class="lucide lucide-check text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                确认按规则处理
+              </button>
+<button class="h-8 px-2.5 border border-neutral-300 bg-white text-[10px] hover:bg-neutral-50 inline-flex items-center justify-center gap-1.5" data-action="manualReply" data-item="EX-20261103-0634" type="button">
+<svg aria-hidden="true" class="lucide lucide-pen-line text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M13 21h8m.174-14.188a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                例外人工回复
+              </button>
+</div>
+</div>
+</section>
+<div class="flex items-start gap-2 text-[10px] text-neutral-500 leading-5">
+<svg aria-hidden="true" class="lucide lucide-info text-[12px] mt-0.5 shrink-0" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4m0-4h.01"></path></g></svg>
+<p>分组顺序固定：低置信转人工置顶，其余五组按既定顺序展示。组内条目超过 20 条时加载下一页，不改变分组归属。</p>
+</div>
+</div>
+<aside class="space-y-4 xl:sticky xl:top-5">
+<section class="bg-white border border-neutral-300">
+<div class="px-4 py-3 border-b border-neutral-300 flex items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<svg aria-hidden="true" class="lucide lucide-history text-[15px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9a9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5m4-1v5l4 2"></path></g></svg>
+<h2 class="text-[13px] font-medium">操作留痕</h2>
+</div>
+<span class="text-[9px] text-neutral-500">实时</span>
+</div>
+<div class="p-4">
+<ol class="space-y-0" id="liveTrace">
+<li class="relative pl-4 pb-3 border-l border-neutral-300">
+<span class="absolute left-[-2.5px] top-1.5 w-[5px] h-[5px] bg-neutral-400"></span>
+<div class="text-[10px] leading-5">确认不回复 · <span class="mono">CM-8841622</span></div>
+<div class="text-[9px] text-neutral-500 mono">2026-11-03 14:12 · 林晓</div>
+</li>
+<li class="relative pl-4 pb-3 border-l border-neutral-300">
+<span class="absolute left-[-2.5px] top-1.5 w-[5px] h-[5px] bg-neutral-400"></span>
+<div class="text-[10px] leading-5">转售后工单 · <span class="mono">CM-8841584</span></div>
+<div class="text-[9px] text-neutral-500 mono">2026-11-03 14:08 · 林晓</div>
+</li>
+<li class="relative pl-4 pb-3 border-l border-neutral-300">
+<span class="absolute left-[-2.5px] top-1.5 w-[5px] h-[5px] bg-neutral-400"></span>
+<div class="text-[10px] leading-5">异常分流命中 · 低置信转人工</div>
+<div class="text-[9px] text-neutral-500 mono">2026-11-03 13:57 · 系统</div>
+</li>
+<li class="relative pl-4">
+<span class="absolute left-[-2.5px] top-1.5 w-[5px] h-[5px] bg-neutral-400"></span>
+<div class="text-[10px] leading-5">异常队列刷新 · 8 条待处置</div>
+<div class="text-[9px] text-neutral-500 mono">2026-11-03 13:55 · 系统</div>
+</li>
+</ol>
+<div class="mt-2 border border-dashed border-neutral-300 px-2.5 py-2 text-[9px] text-neutral-500 leading-4">
+              所有操作记录操作人、时间、条目 ID 与处置理由；操作留痕不可删除。
+            </div>
+</div>
+</section>
+<section class="bg-white border border-neutral-300">
+<div class="px-4 py-3 border-b border-neutral-300 flex items-center gap-2">
+<svg aria-hidden="true" class="lucide lucide-book-open-check text-[15px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 5v16m4-9l2 2l4-4"></path><path d="M22 6V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2a5 5 0 0 1 4-2h4.001A2 2 0 0 0 22 17v-1.344"></path></g></svg>
+<h2 class="text-[13px] font-medium">异常处置边界</h2>
+</div>
+<div class="p-4 space-y-2.5">
+<div class="flex items-start gap-2">
+<svg aria-hidden="true" class="lucide lucide-ban text-[12px] mt-1 shrink-0" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M4.929 4.929L19.07 19.071"></path></g></svg>
+<p class="text-[10px] leading-5 text-neutral-600">确认不回复 = 不产生任何回评，不进入发送队列。</p>
+</div>
+<div class="flex items-start gap-2">
+<svg aria-hidden="true" class="lucide lucide-unlock text-[12px] mt-1 shrink-0" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect height="11" rx="2" ry="2" width="18" x="3" y="11"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></g></svg>
+<p class="text-[10px] leading-5 text-neutral-600">例外放行与例外人工回复必须填写理由，生成内容仍为草稿。</p>
+</div>
+<div class="flex items-start gap-2">
+<svg aria-hidden="true" class="lucide lucide-git-branch text-[12px] mt-1 shrink-0" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M15 6a9 9 0 0 0-9 9V3"></path><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle></g></svg>
+<p class="text-[10px] leading-5 text-neutral-600">产品归属由人工指定后重新生成，系统不会自行改判品牌。</p>
+</div>
+<div class="flex items-start gap-2">
+<svg aria-hidden="true" class="lucide lucide-lock text-[12px] mt-1 shrink-0" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect height="11" rx="2" ry="2" width="18" x="3" y="11"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></g></svg>
+<p class="text-[10px] leading-5 text-neutral-600">系统没有任何自动发送路径；人工确认是唯一发送前提。</p>
+</div>
+</div>
+</section>
+<section class="bg-neutral-900 text-white p-4">
+<div class="flex items-start gap-2.5">
+<svg aria-hidden="true" class="lucide lucide-shield-check text-[16px] mt-0.5 shrink-0" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12l2 2l4-4"></path></g></svg>
+<div>
+<div class="text-[11px] font-medium">人工确认闸始终生效</div>
+<p class="text-[10px] text-neutral-300 mt-1 leading-5">即使例外放行或重新生成草稿，也必须由客服运营逐条审阅、手动确认后才可能发送。</p>
+</div>
+</div>
+</section>
+</aside>
+</div>
+</main>
+<div class="hidden fixed inset-0 z-50 bg-neutral-900/50 p-4" id="actionOverlay">
+<div class="w-full h-full flex items-center justify-center">
+<div aria-labelledby="actionTitle" aria-modal="true" class="bg-white border border-neutral-500 shadow-2xl w-full max-w-[560px] max-h-[90vh] overflow-y-auto" role="dialog">
+<div class="px-5 py-3.5 border-b border-neutral-300 flex items-start justify-between gap-3">
+<div>
+<div class="text-[9px] text-neutral-500 mono tracking-wider mb-0.5" id="actionKicker">EXCEPTION ACTION</div>
+<h2 class="text-[16px] font-semibold" id="actionTitle">处置确认</h2>
+</div>
+<button aria-label="关闭" class="w-8 h-8 border border-neutral-300 flex items-center justify-center hover:bg-neutral-100" id="actionClose" type="button">
+<svg aria-hidden="true" class="lucide lucide-x text-[15px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M18 6L6 18M6 6l12 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<div class="p-5">
+<div class="border border-neutral-300 divide-y divide-neutral-200 text-[10px] mb-4">
+<div class="flex items-center justify-between gap-3 px-3 py-2">
+<span class="text-neutral-500">当前条目</span>
+<span class="mono" id="modalItem">-</span>
+</div>
+<div class="flex items-center justify-between gap-3 px-3 py-2">
+<span class="text-neutral-500">操作人</span>
+<span>林晓 · 客服运营</span>
+</div>
+</div>
+<p class="text-[11px] leading-5 text-neutral-700" id="actionDesc"></p>
+<div class="hidden mt-4" id="reasonBlock">
+<label class="block text-[10px] text-neutral-600 mb-1.5" for="reasonInput">处置理由（必填）</label>
+<textarea class="w-full h-20 border border-neutral-300 p-2.5 text-[11px] leading-5 resize-none focus:outline-none focus:border-neutral-900" id="reasonInput" placeholder="请填写具体理由，将写入操作留痕"></textarea>
+<div class="mt-1 text-[9px] text-neutral-500">至少 2 个字符。理由不可留空，不可事后删除。</div>
+</div>
+<div class="hidden mt-4" id="assignBlock">
+<label class="block text-[10px] text-neutral-600 mb-1.5" for="assignSelect">指定品牌 / 商品归属（必选）</label>
+<select class="w-full h-9 border border-neutral-300 bg-white px-2.5 text-[11px] focus:outline-none focus:border-neutral-900" id="assignSelect">
+<option value="">请选择正确归属</option>
+<option value="屿森 / 屿森舒缓修护精华 30ml">屿森 / 屿森舒缓修护精华 30ml</option>
+<option value="沐岚 / 沐岚水感精华 30ml">沐岚 / 沐岚水感精华 30ml</option>
+<option value="柏泽 / 柏泽焕亮精华 30ml">柏泽 / 柏泽焕亮精华 30ml</option>
+<option value="初萃 / 初萃修护精华 30ml">初萃 / 初萃修护精华 30ml</option>
+</select>
+<div class="mt-1 text-[9px] text-neutral-500">指定后重新生成草稿，不会自动发送。</div>
+</div>
+<div class="hidden mt-4" id="scriptBlock">
+<div class="text-[10px] text-neutral-600 mb-1.5">售后内部建议话术（不发送）</div>
+<div class="border border-neutral-300 bg-neutral-50 p-3 text-[11px] leading-6">
+              您好，关于您反馈的使用后泛红，请先暂停使用并保留产品与包装。我们已为您登记售后复核，售后专员会在 24 小时内联系您，核实订单与使用情况。请勿继续涂抹于不适部位。
+            </div>
+<div class="mt-2 text-[9px] text-neutral-500">仅作售后内部参考；不得直接复制为评论回评发送。</div>
+</div>
+<div class="mt-4 border border-dashed border-neutral-400 bg-neutral-50 px-3 py-2.5 flex items-start gap-2" id="actionWarning">
+<svg aria-hidden="true" class="lucide lucide-triangle-alert text-[13px] mt-0.5 shrink-0" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m21.73 18l-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3M12 9v4m0 4h.01" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<p class="text-[10px] leading-5 text-neutral-600">本操作会写入操作留痕。系统没有自动发送路径，任何回评仍需人工确认后发送。</p>
+</div>
+</div>
+<div class="px-5 py-3 border-t border-neutral-300 flex items-center justify-between gap-3 bg-neutral-50">
+<button class="h-9 px-4 border border-neutral-300 bg-white text-[11px] hover:bg-neutral-100" id="actionCancel" type="button">取消</button>
+<button class="h-9 px-4 border border-neutral-300 bg-neutral-200 text-neutral-400 text-[11px] cursor-not-allowed" disabled="" id="actionConfirm" type="button">确认处置</button>
+</div>
+</div>
+</div>
+</div>
+<div class="hidden fixed bottom-5 right-5 z-[60] bg-neutral-900 text-white px-4 py-3 shadow-xl max-w-[340px]" id="toast">
+<div class="flex items-start gap-2">
+<svg aria-hidden="true" class="lucide lucide-circle-check text-[14px] mt-0.5 shrink-0" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="m9 12l2 2l4-4"></path></g></svg>
+<div>
+<div class="text-[11px] font-medium" id="toastTitle">处置已记录</div>
+<div class="text-[9px] text-neutral-300 mt-0.5 leading-4" id="toastNote">操作人与时间已写入留痕。</div>
+</div>
+</div>
+</div>
+<script>
+    const actionConfig = {
+      noReply: {
+        kicker: '不建议回复',
+        title: '确认不回复',
+        desc: '确认后，该评论不产生任何回评，也不会进入发送流程。此操作只记录处置结果。',
+        confirm: '确认不回复',
+        status: '已确认不回复',
+        log: '确认不回复',
+        reason: false,
+        assign: false,
+        script: false
+      },
+      release: {
+        kicker: '不建议回复 · 例外',
+        title: '例外放行',
+        desc: '放行后将进入人工回评流程，系统会生成回评草稿；草稿仍需人工确认后才可能发送。',
+        confirm: '确认例外放行',
+        status: '已例外放行',
+        log: '例外放行',
+        reason: true,
+        assign: false,
+        script: false
+      },
+      ticket: {
+        kicker: '售后复核',
+        title: '转售后工单',
+        desc: '将在售后系统创建工单并移交售后组，不在评论区直接承诺处理结果。',
+        confirm: '确认转售后工单',
+        status: '已转售后工单',
+        log: '转售后工单',
+        reason: false,
+        assign: false,
+        script: false
+      },
+      script: {
+        kicker: '售后复核',
+        title: '售后建议话术',
+        desc: '以下内容仅供售后内部参考，不会发送至评论区，也不进入回评发送队列。',
+        confirm: '关闭',
+        status: '',
+        log: '查看售后建议话术',
+        reason: false,
+        assign: false,
+        script: true
+      },
+      assign: {
+        kicker: '产品归属待确认',
+        title: '指定归属并重新生成',
+        desc: '人工指定品牌与商品后，系统重新生成回评草稿。重新生成不等于发送，草稿仍需人工确认。',
+        confirm: '指定归属并重新生成',
+        status: '已指定归属 · 待重新生成',
+        log: '指定产品归属',
+        reason: false,
+        assign: true,
+        script: false
+      },
+      follow: {
+        kicker: '无内容风险',
+        title: '转人工跟进',
+        desc: '将创建人工跟进任务，不生成自动回评，也不触发任何发送动作。',
+        confirm: '确认转人工跟进',
+        status: '已转人工跟进',
+        log: '转人工跟进',
+        reason: false,
+        assign: false,
+        script: false
+      },
+      rule: {
+        kicker: '空标题商品',
+        title: '确认按规则处理',
+        desc: '空标题商品按平台规则处理：不生成商品绑定回评，仅记录本次处置结果。',
+        confirm: '确认按规则处理',
+        status: '已按规则处理',
+        log: '空标题商品按规则处理',
+        reason: false,
+        assign: false,
+        script: false
+      },
+      manualReply: {
+        kicker: '空标题商品 · 例外',
+        title: '例外人工回复',
+        desc: '填写例外理由后，系统才会生成人工回评草稿。草稿仍需人工确认，系统不会自动发送。',
+        confirm: '生成人工回评草稿',
+        status: '已生成人工草稿',
+        log: '空标题商品例外人工回复',
+        reason: true,
+        assign: false,
+        script: false
+      },
+      archive: {
+        kicker: '低置信转人工',
+        title: '标记补充品牌档案',
+        desc: '将该条目标记为待补充品牌档案，并保留在当前异常分组。补充档案不会触发发送。',
+        confirm: '标记补充档案',
+        status: '待补充品牌档案',
+        log: '标记补充品牌档案',
+        reason: true,
+        assign: false,
+        script: false
+      }
+    };
+
+    const overlay = document.getElementById('actionOverlay');
+    const actionTitle = document.getElementById('actionTitle');
+    const actionKicker = document.getElementById('actionKicker');
+    const actionDesc = document.getElementById('actionDesc');
+    const modalItem = document.getElementById('modalItem');
+    const reasonBlock = document.getElementById('reasonBlock');
+    const reasonInput = document.getElementById('reasonInput');
+    const assignBlock = document.getElementById('assignBlock');
+    const assignSelect = document.getElementById('assignSelect');
+    const scriptBlock = document.getElementById('scriptBlock');
+    const actionConfirm = document.getElementById('actionConfirm');
+    const toast = document.getElementById('toast');
+    let currentAction = '';
+    let currentItem = '';
+    let currentButton = null;
+
+    function nowStamp() {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      return '2026-11-03 ' + hh + ':' + mm + ':' + ss;
+    }
+
+    function showToast(title, note) {
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastNote').textContent = note;
+      toast.classList.remove('hidden');
+      window.clearTimeout(window.__toastTimer);
+      window.__toastTimer = window.setTimeout(function () {
+        toast.classList.add('hidden');
+      }, 3200);
+    }
+
+    function addTrace(actionLabel, itemId, detail) {
+      const list = document.getElementById('liveTrace');
+      const li = document.createElement('li');
+      li.className = 'relative pl-4 pb-3 border-l border-neutral-300';
+      const dot = document.createElement('span');
+      dot.className = 'absolute left-[-2.5px] top-1.5 w-[5px] h-[5px] bg-neutral-900';
+      const head = document.createElement('div');
+      head.className = 'text-[10px] leading-5';
+      head.textContent = actionLabel + ' · ' + itemId;
+      const meta = document.createElement('div');
+      meta.className = 'text-[9px] text-neutral-500 mono';
+      meta.textContent = nowStamp() + ' · 林晓' + (detail ? ' · ' + detail : '');
+      li.appendChild(dot);
+      li.appendChild(head);
+      li.appendChild(meta);
+      list.insertBefore(li, list.firstChild);
+    }
+
+    function syncConfirm() {
+      const config = actionConfig[currentAction];
+      if (!config) return;
+      let valid = true;
+      if (config.reason) valid = reasonInput.value.trim().length >= 2;
+      if (config.assign) valid = assignSelect.value !== '';
+      if (valid) {
+        actionConfirm.disabled = false;
+        actionConfirm.className = 'h-9 px-4 border border-neutral-900 bg-neutral-900 text-white text-[11px] cursor-pointer hover:bg-neutral-700';
+      } else {
+        actionConfirm.disabled = true;
+        actionConfirm.className = 'h-9 px-4 border border-neutral-300 bg-neutral-200 text-neutral-400 text-[11px] cursor-not-allowed';
+      }
+    }
+
+    function openAction(button) {
+      const action = button.dataset.action;
+      const config = actionConfig[action];
+      if (!config) return;
+      currentAction = action;
+      currentButton = button;
+      currentItem = button.dataset.item;
+      actionTitle.textContent = config.title;
+      actionKicker.textContent = config.kicker + ' / EXCEPTION ACTION';
+      actionDesc.textContent = config.desc;
+      modalItem.textContent = currentItem;
+      reasonBlock.classList.add('hidden');
+      assignBlock.classList.add('hidden');
+      scriptBlock.classList.add('hidden');
+      reasonInput.value = '';
+      assignSelect.value = '';
+      actionConfirm.textContent = config.confirm;
+      if (config.reason) reasonBlock.classList.remove('hidden');
+      if (config.assign) assignBlock.classList.remove('hidden');
+      if (config.script) scriptBlock.classList.remove('hidden');
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+      syncConfirm();
+      if (config.reason) {
+        window.setTimeout(function () { reasonInput.focus(); }, 50);
+      } else {
+        document.getElementById('actionClose').focus();
+      }
+    }
+
+    function closeAction() {
+      const returnFocus = currentButton;
+      overlay.classList.add('hidden');
+      overlay.classList.remove('flex');
+      currentAction = '';
+      currentItem = '';
+      currentButton = null;
+      if (returnFocus) returnFocus.focus();
+    }
+
+    document.querySelectorAll('[data-action]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        openAction(button);
+      });
+    });
+
+    document.getElementById('actionClose').addEventListener('click', closeAction);
+    document.getElementById('actionCancel').addEventListener('click', closeAction);
+    overlay.addEventListener('click', function (event) {
+      if (event.target === overlay) closeAction();
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && !overlay.classList.contains('hidden')) closeAction();
+    });
+    reasonInput.addEventListener('input', syncConfirm);
+    assignSelect.addEventListener('change', syncConfirm);
+
+    actionConfirm.addEventListener('click', function () {
+      const config = actionConfig[currentAction];
+      if (!config) return;
+      if (config.reason && reasonInput.value.trim().length < 2) return;
+      if (config.assign && !assignSelect.value) return;
+
+      const itemId = currentItem;
+      const row = document.querySelector('[data-item-id="' + itemId + '"]');
+      let detail = '';
+      if (config.reason) detail = '理由：' + reasonInput.value.trim();
+      if (config.assign) detail = '归属：' + assignSelect.value;
+
+      if (config.status && row) {
+        const statusEl = row.querySelector('[id^="status-"]');
+        if (statusEl) {
+          statusEl.textContent = '';
+          const dot = document.createElement('span');
+          dot.className = 'w-1 h-1 bg-neutral-900';
+          statusEl.appendChild(dot);
+          statusEl.appendChild(document.createTextNode(config.status));
+          statusEl.className = 'ml-auto inline-flex items-center gap-1 text-[9px] border border-neutral-900 px-1.5 py-0.5';
+        }
+      }
+
+      addTrace(config.log, itemId, detail);
+      if (currentButton && config.status) currentButton.disabled = true;
+      showToast(config.status ? '处置已记录' : '查看已留痕', config.status ? config.log + ' · 操作人林晓 · 已写入留痕' : '查看建议话术 · 未发送任何内容');
+      closeAction();
+    });
+  </script>
+</body>
+</html>

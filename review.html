@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>单条审阅 · 回评确认闸</title>
+<style>
+    html { scrollbar-width: none; }
+    body { scrollbar-width: none; }
+    body::-webkit-scrollbar { display: none; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .wire-dots {
+      background-image: radial-gradient(circle, #d4d4d4 0.5px, transparent 0.5px);
+      background-size: 12px 12px;
+    }
+    .hatch {
+      background-image: repeating-linear-gradient(135deg, #fafafa, #fafafa 7px, #f1f1f1 7px, #f1f1f1 8px);
+    }
+    details > summary { list-style: none; }
+    details > summary::-webkit-details-marker { display: none; }
+    input[type="checkbox"] { accent-color: #171717; }
+    [hidden] { display: none !important; }
+  </style>
+<link href="assets/prototype.css" rel="stylesheet"/><meta content="回评 Agent 人工确认闸四屏交互原型，使用合成数据演示，不产生真实发送。" name="description"/><link href="assets/favicon.svg" rel="icon" type="image/svg+xml"/></head>
+<body class="min-h-screen bg-neutral-100 text-neutral-900 antialiased text-[13px] leading-6"><div class="demo-notice" role="note">
+<strong>公开交互原型</strong>
+<span>全部品牌、评论、人员与数据均为虚构；操作仅模拟前端状态，不产生真实发送。</span>
+</div>
+<header class="bg-white border-b border-neutral-300">
+<div class="max-w-[1560px] mx-auto px-6 h-16 flex items-center justify-between gap-8">
+<div class="flex items-center gap-7 min-w-0">
+<a class="flex items-center gap-3 shrink-0" href="queue.html">
+<span class="w-8 h-8 border border-neutral-900 flex items-center justify-center">
+<svg aria-hidden="true" class="lucide lucide-shield-check text-[17px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12l2 2l4-4"></path></g></svg>
+</span>
+<span>
+<span class="block text-[14px] font-semibold tracking-wide leading-5">回评确认闸</span>
+<span class="block text-[9px] text-neutral-500 mono tracking-[0.14em] leading-4">REVIEW CONFIRM GATE</span>
+</span>
+</a>
+<span class="h-7 w-px bg-neutral-300"></span>
+<nav class="flex items-center gap-1 text-[13px]">
+<a class="px-3 py-2 text-neutral-600 hover:bg-neutral-100 flex items-center gap-2" href="queue.html">
+            确认队列
+            <span class="mono text-[10px] border border-neutral-400 px-1">18</span>
+</a>
+<a class="px-3 py-2 text-neutral-600 hover:bg-neutral-100 flex items-center gap-2" href="exceptions.html">
+            异常处理
+            <span class="mono text-[10px] border border-neutral-400 px-1">8</span>
+</a>
+<span class="px-3 py-2 bg-neutral-900 text-white">单条审阅</span>
+</nav>
+</div>
+<div class="flex items-center gap-5 shrink-0">
+<div class="hidden xl:flex items-center gap-2 border border-neutral-300 px-2.5 py-1.5 text-[11px] text-neutral-600">
+<span class="w-1.5 h-1.5 bg-neutral-900"></span>
+          自动发送通道：不存在
+        </div>
+<div class="flex items-center gap-2.5">
+<span class="w-8 h-8 border border-neutral-400 flex items-center justify-center text-[12px] font-medium">林</span>
+<span class="leading-4">
+<span class="block text-[12px] font-medium">林晓</span>
+<span class="block text-[10px] text-neutral-500">客服运营 · 华东组</span>
+</span>
+</div>
+</div>
+</div>
+</header>
+<div class="bg-neutral-900 text-white text-[12px]">
+<div class="max-w-[1560px] mx-auto px-6 py-2.5 flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2.5">
+<svg aria-hidden="true" class="lucide lucide-triangle-alert text-[15px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m21.73 18l-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3M12 9v4m0 4h.01" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>所有回评须经人工确认后发送，系统不会自动发出任何回复。</span>
+</div>
+<span class="mono text-[10px] text-neutral-300 tracking-wider">人工确认闸 · 强制生效</span>
+</div>
+</div>
+<main class="max-w-[1560px] mx-auto px-6 py-5">
+<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+<div class="flex items-center gap-2 text-[11px] text-neutral-500">
+<a class="hover:text-neutral-900 underline-offset-2 hover:underline" href="queue.html">确认队列</a>
+<svg aria-hidden="true" class="lucide lucide-chevron-right text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m9 18l6-6l-6-6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="text-neutral-900">单条审阅</span>
+<span class="w-px h-3 bg-neutral-300"></span>
+<span class="mono">RV-20261103-0842</span>
+</div>
+<a class="inline-flex items-center gap-1.5 h-8 px-3 border border-neutral-300 bg-white hover:bg-neutral-50 text-[11px]" href="queue.html">
+<svg aria-hidden="true" class="lucide lucide-arrow-left text-[13px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m12 19l-7-7l7-7m7 7H5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        返回队列
+      </a>
+</div>
+<section class="bg-white border border-neutral-300 mb-5">
+<div class="px-5 py-4 flex flex-wrap items-start justify-between gap-4 border-b border-neutral-300">
+<div>
+<div class="flex flex-wrap items-center gap-2 mb-1.5">
+<h1 class="text-[21px] leading-8 font-semibold tracking-tight">单条审阅</h1>
+<span class="inline-flex items-center gap-1 border border-neutral-400 px-2 py-0.5 text-[10px]" id="reviewStatus">
+<span class="w-1 h-1 bg-neutral-500"></span>待人工确认
+            </span>
+<span class="border border-dashed border-neutral-400 px-2 py-0.5 text-[10px] text-neutral-600">人工确认闸内</span>
+</div>
+<p class="text-[11px] text-neutral-500">逐项核对原始评论、中间结果与话术，确认后才会发生一次人工触发的发送。</p>
+</div>
+<div class="text-right text-[10px] text-neutral-500 leading-5">
+<div class="mono">ENTERED QUEUE · 14:18:42</div>
+<div>队列等待 00:18:31</div>
+</div>
+</div>
+<div class="grid grid-cols-2 lg:grid-cols-4 divide-x divide-neutral-200">
+<div class="px-4 py-3">
+<div class="text-[10px] text-neutral-500">品牌</div>
+<div class="mt-1 text-[12px] font-medium">屿森 <span class="mono text-[9px] text-neutral-500">BRAND-04</span></div>
+</div>
+<div class="px-4 py-3">
+<div class="text-[10px] text-neutral-500">分流类别</div>
+<div class="mt-1 text-[12px] font-medium">正常回复</div>
+</div>
+<div class="px-4 py-3">
+<div class="text-[10px] text-neutral-500">分流置信度</div>
+<div class="mt-1 text-[12px] font-medium mono">0.92 <span class="font-sans text-[9px] text-neutral-500">高置信</span></div>
+</div>
+<div class="px-4 py-3">
+<div class="text-[10px] text-neutral-500">当前操作人</div>
+<div class="mt-1 text-[12px] font-medium">林晓 · 客服运营</div>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_440px] gap-5 items-start">
+<div class="space-y-5 min-w-0">
+<section class="bg-white border border-neutral-300">
+<div class="px-5 py-3 border-b border-neutral-300 flex items-center justify-between gap-3">
+<div class="flex items-center gap-2.5">
+<span class="mono text-[10px] text-neutral-500 border border-neutral-300 w-6 h-6 flex items-center justify-center">01</span>
+<h2 class="font-medium text-[14px]">原始评论全文</h2>
+<span class="text-[9px] text-neutral-500 border border-neutral-300 px-1.5 py-0.5">只读</span>
+</div>
+<span class="mono text-[10px] text-neutral-500">2026-11-03 14:18</span>
+</div>
+<div class="p-5">
+<div class="flex items-start gap-3.5">
+<div class="w-10 h-10 shrink-0 border border-neutral-400 bg-neutral-100 flex items-center justify-center text-[13px] font-medium">陈</div>
+<div class="min-w-0 flex-1">
+<div class="flex flex-wrap items-center gap-2">
+<span class="text-[12px] font-medium">陈**</span>
+<span class="text-[9px] text-neutral-500 border border-neutral-300 px-1 py-0.5">敏感肌</span>
+<span class="text-[9px] text-neutral-500 border border-neutral-300 px-1 py-0.5">复购 2 次</span>
+<span class="text-[9px] text-neutral-500 border border-neutral-300 px-1 py-0.5">已购 7 天</span>
+</div>
+<div class="mt-1.5 flex items-center gap-2">
+<span class="text-[13px] tracking-[0.16em] text-neutral-800">★★★★★</span>
+<span class="text-[10px] text-neutral-500">5.0 · 商品评价</span>
+</div>
+</div>
+</div>
+<blockquote class="mt-4 border-l-2 border-neutral-800 bg-neutral-50 px-4 py-4 text-[14px] leading-7 text-neutral-900">
+              包装很用心，面霜质地比上次清爽，敏感肌上脸没有刺痛，会回购。
+            </blockquote>
+<div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-[10px] text-neutral-500">
+<div class="flex items-center gap-3">
+<span>评论 ID：<span class="mono">CM-8842017</span></span>
+<span>来源：天猫旗舰店</span>
+<span>买家未上传图片</span>
+</div>
+<span class="border border-neutral-200 px-1.5 py-0.5">原文完整 · 无截断</span>
+</div>
+</div>
+</section>
+<section class="bg-white border border-neutral-300">
+<div class="px-5 py-3 border-b border-neutral-300 flex items-center justify-between gap-3">
+<div class="flex items-center gap-2.5">
+<span class="mono text-[10px] text-neutral-500 border border-neutral-300 w-6 h-6 flex items-center justify-center">02</span>
+<h2 class="font-medium text-[14px]">买家订单背景</h2>
+</div>
+<span class="inline-flex items-center gap-1.5 text-[10px] text-neutral-600 border border-neutral-300 px-2 py-0.5">
+<svg aria-hidden="true" class="lucide lucide-package-check text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 22V12m4 5l2 2l4-4"></path><path d="M21 11.127V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.729l7 4a2 2 0 0 0 2 .001l1.32-.753"></path><path d="M3.29 7L12 12l8.71-5M7.5 4.27l8.997 5.148"></path></g></svg>
+              已签收 · 在售后窗口内
+            </span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-0 p-5 pt-3">
+<div class="flex items-start justify-between gap-4 py-2.5 border-b border-neutral-200">
+<span class="text-[11px] text-neutral-500">订单号</span>
+<span class="mono text-[11px] text-right">2026102700**4821</span>
+</div>
+<div class="flex items-start justify-between gap-4 py-2.5 border-b border-neutral-200">
+<span class="text-[11px] text-neutral-500">商品</span>
+<span class="text-[11px] text-right">屿森舒缓修护面霜</span>
+</div>
+<div class="flex items-start justify-between gap-4 py-2.5 border-b border-neutral-200">
+<span class="text-[11px] text-neutral-500">规格 / 数量</span>
+<span class="text-[11px] text-right">50g × 1</span>
+</div>
+<div class="flex items-start justify-between gap-4 py-2.5 border-b border-neutral-200">
+<span class="text-[11px] text-neutral-500">下单时间</span>
+<span class="text-[11px] text-right mono">2026-10-27 21:46</span>
+</div>
+<div class="flex items-start justify-between gap-4 py-2.5 border-b border-neutral-200">
+<span class="text-[11px] text-neutral-500">签收时间</span>
+<span class="text-[11px] text-right mono">2026-10-29 11:12</span>
+</div>
+<div class="flex items-start justify-between gap-4 py-2.5 border-b border-neutral-200">
+<span class="text-[11px] text-neutral-500">本店历史订单</span>
+<span class="text-[11px] text-right">3 笔 · 退货 0 笔</span>
+</div>
+<div class="flex items-start justify-between gap-4 py-2.5 border-b border-neutral-200">
+<span class="text-[11px] text-neutral-500">售后状态</span>
+<span class="text-[11px] text-right">无进行中售后</span>
+</div>
+<div class="flex items-start justify-between gap-4 py-2.5 border-b border-neutral-200">
+<span class="text-[11px] text-neutral-500">历史回评</span>
+<span class="text-[11px] text-right">1 条 · 未触发风险</span>
+</div>
+<div class="flex items-start justify-between gap-4 py-2.5 border-b border-neutral-200">
+<span class="text-[11px] text-neutral-500">会员等级</span>
+<span class="text-[11px] text-right">店铺会员 · 银卡</span>
+</div>
+</div>
+<div class="mx-5 mb-5 border border-dashed border-neutral-300 px-3 py-2 text-[10px] text-neutral-600 flex items-start gap-2">
+<svg aria-hidden="true" class="lucide lucide-info text-[12px] mt-0.5 shrink-0" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4m0-4h.01"></path></g></svg>
+<span>订单背景仅用于判断回复边界；不读取其他买家信息，不用于自动发送。敏感肌相关表达须遵循品牌合规话术边界。</span>
+</div>
+</section>
+<section class="bg-white border border-neutral-300">
+<div class="px-5 py-3 border-b border-neutral-300 flex items-center justify-between gap-3">
+<div class="flex items-center gap-2.5">
+<span class="mono text-[10px] text-neutral-500 border border-neutral-300 w-6 h-6 flex items-center justify-center">03</span>
+<h2 class="font-medium text-[14px]">结构化中间结果</h2>
+</div>
+<span class="text-[9px] text-neutral-500">AI 辅助判断 · 待人工复核</span>
+</div>
+<div class="p-5">
+<div class="grid grid-cols-2 lg:grid-cols-4 border border-neutral-300 divide-x divide-neutral-300">
+<div class="p-3.5">
+<div class="text-[10px] text-neutral-500">情绪</div>
+<div class="mt-1.5 flex items-center gap-2">
+<span class="text-[13px] font-medium">正向</span>
+<span class="mono text-[10px] border border-neutral-300 px-1">0.88</span>
+</div>
+<div class="mt-1 text-[10px] text-neutral-500">感谢 · 认可 · 复购意向</div>
+</div>
+<div class="p-3.5">
+<div class="text-[10px] text-neutral-500">主题</div>
+<div class="mt-1.5 flex items-center gap-2">
+<span class="text-[13px] font-medium">肤感 / 质地</span>
+<span class="mono text-[10px] border border-neutral-300 px-1">0.91</span>
+</div>
+<div class="mt-1 text-[10px] text-neutral-500">清爽 · 不刺痛 · 包装</div>
+</div>
+<div class="p-3.5">
+<div class="text-[10px] text-neutral-500">功效</div>
+<div class="mt-1.5 flex items-center gap-2">
+<span class="text-[13px] font-medium">保湿 / 修护</span>
+<span class="mono text-[10px] border border-neutral-300 px-1">0.76</span>
+</div>
+<div class="mt-1 text-[10px] text-neutral-500">敏感肌使用反馈</div>
+</div>
+<div class="p-3.5 bg-neutral-50">
+<div class="text-[10px] text-neutral-500">风险分流结论</div>
+<div class="mt-1.5 flex items-center gap-2">
+<span class="text-[13px] font-medium">正常回复</span>
+<span class="mono text-[10px] border border-neutral-400 px-1">0.92</span>
+</div>
+<div class="mt-1 text-[10px] text-neutral-600">无售后 / 合规 / 归属风险</div>
+</div>
+</div>
+<div class="mt-4">
+<div class="flex items-center justify-between mb-2">
+<span class="text-[11px] text-neutral-600">六道分流结果</span>
+<span class="text-[10px] text-neutral-500">仅「正常回复」与「低置信转人工」进入人工处理</span>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2">
+<div class="border border-neutral-900 bg-neutral-900 text-white px-2.5 py-2">
+<div class="flex items-center justify-between gap-1">
+<span class="text-[11px]">正常回复</span>
+<svg aria-hidden="true" class="lucide lucide-check text-[11px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<div class="mono text-[9px] text-neutral-300 mt-0.5">0.92 · 命中</div>
+</div>
+<div class="border border-neutral-300 px-2.5 py-2 text-neutral-500">
+<div class="text-[11px]">售后复核</div>
+<div class="mono text-[9px] mt-0.5">0.04 · 未命中</div>
+</div>
+<div class="border border-neutral-300 px-2.5 py-2 text-neutral-500">
+<div class="text-[11px]">无内容风险</div>
+<div class="mono text-[9px] mt-0.5">0.01 · 未命中</div>
+</div>
+<div class="border border-neutral-300 px-2.5 py-2 text-neutral-500">
+<div class="text-[11px]">产品归属待确认</div>
+<div class="mono text-[9px] mt-0.5">0.02 · 未命中</div>
+</div>
+<div class="border border-neutral-300 px-2.5 py-2 text-neutral-500">
+<div class="text-[11px]">不建议回复</div>
+<div class="mono text-[9px] mt-0.5">0.01 · 未命中</div>
+</div>
+<div class="border border-neutral-300 px-2.5 py-2 text-neutral-500">
+<div class="text-[11px]">空标题商品</div>
+<div class="mono text-[9px] mt-0.5">0.00 · 未命中</div>
+</div>
+</div>
+</div>
+<div class="mt-4 flex items-start gap-2 bg-neutral-50 border border-neutral-200 px-3 py-2.5">
+<svg aria-hidden="true" class="lucide lucide-scan-text text-[14px] mt-0.5 shrink-0 text-neutral-600" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M3 7V5a2 2 0 0 1 2-2h2m10 0h2a2 2 0 0 1 2 2v2m0 10v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2m4-9h8m-8 4h10M7 16h6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<p class="text-[11px] text-neutral-600 leading-5">判断摘要：正向体验，包含明确肤质信息，未命中售后、内容或商品归属风险。可围绕“质地认可”和“敏感肌试用建议”生成回评，避免作出功效承诺。</p>
+</div>
+</div>
+</section>
+<section class="bg-white border border-neutral-300">
+<div class="px-5 py-3 border-b border-neutral-300 flex items-center justify-between gap-3">
+<div class="flex items-center gap-2.5">
+<span class="mono text-[10px] text-neutral-500 border border-neutral-300 w-6 h-6 flex items-center justify-center">04</span>
+<h2 class="font-medium text-[14px]">档案溯源</h2>
+</div>
+<span class="text-[9px] text-neutral-500">生成依据 · 不是发送许可</span>
+</div>
+<div class="p-5">
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
+<div class="border border-neutral-300 px-3 py-2.5">
+<div class="text-[9px] text-neutral-500">档案命中</div>
+<div class="mt-0.5 flex items-baseline gap-1.5">
+<span class="mono text-[18px] font-medium">3/3</span>
+<span class="text-[9px] text-neutral-500">品牌档案</span>
+</div>
+</div>
+<div class="border border-neutral-300 px-3 py-2.5">
+<div class="text-[9px] text-neutral-500">检索一致性</div>
+<div class="mt-0.5 flex items-baseline gap-1.5">
+<span class="mono text-[18px] font-medium">0.81</span>
+<span class="text-[9px] text-neutral-500">跨来源</span>
+</div>
+</div>
+<div class="border border-neutral-300 px-3 py-2.5">
+<div class="text-[9px] text-neutral-500">规则冲突</div>
+<div class="mt-0.5 flex items-baseline gap-1.5">
+<span class="mono text-[18px] font-medium">0</span>
+<span class="text-[9px] text-neutral-500">处</span>
+</div>
+</div>
+</div>
+<div class="border border-neutral-300">
+<div class="hidden md:grid grid-cols-[1.2fr_0.8fr_1.2fr_0.7fr] gap-3 px-3 py-2 bg-neutral-50 border-b border-neutral-300 text-[9px] text-neutral-500">
+<span>注入档案</span>
+<span>来源系统</span>
+<span>获取路径</span>
+<span>置信信号</span>
+</div>
+<div class="divide-y divide-neutral-200">
+<div class="grid grid-cols-1 md:grid-cols-[1.2fr_0.8fr_1.2fr_0.7fr] gap-1.5 md:gap-3 px-3 py-3">
+<div>
+<div class="text-[11px] font-medium">品牌语气规范 v3.2</div>
+<div class="text-[9px] text-neutral-500">屿森 · 官方维护</div>
+</div>
+<div class="text-[10px] text-neutral-600">品牌档案库</div>
+<div class="text-[10px] text-neutral-600 mono">规则直连 · brand_id=04</div>
+<div class="text-[10px]"><span class="border border-neutral-300 px-1 py-0.5">命中 3/3</span></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-[1.2fr_0.8fr_1.2fr_0.7fr] gap-1.5 md:gap-3 px-3 py-3">
+<div>
+<div class="text-[11px] font-medium">敏感肌沟通边界</div>
+<div class="text-[9px] text-neutral-500">合规话术规则</div>
+</div>
+<div class="text-[10px] text-neutral-600">合规词库</div>
+<div class="text-[10px] text-neutral-600">关键词检索「敏感肌」</div>
+<div class="text-[10px]"><span class="border border-neutral-300 px-1 py-0.5 mono">相似度 0.90</span></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-[1.2fr_0.8fr_1.2fr_0.7fr] gap-1.5 md:gap-3 px-3 py-3">
+<div>
+<div class="text-[11px] font-medium">屿森修护面霜 商品卡</div>
+<div class="text-[9px] text-neutral-500">商品 ID · SKU 精确匹配</div>
+</div>
+<div class="text-[10px] text-neutral-600">商品知识库</div>
+<div class="text-[10px] text-neutral-600">商品 ID 精确匹配</div>
+<div class="text-[10px]"><span class="border border-neutral-300 px-1 py-0.5">命中</span></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-[1.2fr_0.8fr_1.2fr_0.7fr] gap-1.5 md:gap-3 px-3 py-3">
+<div>
+<div class="text-[11px] font-medium">近 30 天同类回评 12 条</div>
+<div class="text-[9px] text-neutral-500">已脱敏的历史回评</div>
+</div>
+<div class="text-[10px] text-neutral-600">历史回评库</div>
+<div class="text-[10px] text-neutral-600">向量召回 top 3</div>
+<div class="text-[10px]"><span class="border border-neutral-300 px-1 py-0.5 mono">相似度 0.79</span></div>
+</div>
+</div>
+</div>
+<div class="mt-3 border border-dashed border-neutral-300 px-3 py-2 text-[10px] text-neutral-600 flex items-start gap-2">
+<svg aria-hidden="true" class="lucide lucide-folder-search text-[12px] mt-0.5 shrink-0" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M10.7 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v4.1M21 21l-1.9-1.9"></path><circle cx="17" cy="17" r="3"></circle></g></svg>
+<span>档案只用于约束措辞与事实边界。置信信号用于提示分流可靠性，不能替代人工判断，也不构成话术质量保证。</span>
+</div>
+</div>
+</section>
+</div>
+<aside class="space-y-5 min-w-0 xl:sticky xl:top-5">
+<section class="bg-white border border-neutral-300">
+<div class="px-4 py-3 border-b border-neutral-300 flex items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<svg aria-hidden="true" class="lucide lucide-message-square-text text-[15px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2zM7 11h10M7 15h6M7 7h8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<h2 class="font-medium text-[14px]">AI 回评草稿</h2>
+</div>
+<span class="text-[9px] border border-neutral-400 px-1.5 py-0.5">未发送</span>
+</div>
+<div class="p-4">
+<div class="flex flex-wrap items-center justify-between gap-2 text-[9px] text-neutral-500 mb-3">
+<span class="mono">DRAFT · 14:18:42</span>
+<span>品牌语气优先 · 屿森</span>
+</div>
+<div class="text-[13px] leading-6 whitespace-pre-line border border-neutral-200 bg-neutral-50 p-3.5" id="scriptView">陈女士您好，感谢您对屿森面霜质地的认可，也谢谢您再次选择我们。
+
+敏感肌的耐受度因人而异，第一次使用建议先在耳后或下颌线少量试用，观察 24 小时无不适后再全脸使用。若使用中出现持续刺痛或泛红，请先暂停，并把使用情况告诉我们，我们会协助您处理。
+
+希望这次的使用体验能让您满意，有任何问题都可以随时联系屿森客服。</div>
+<div class="hidden" id="editorWrap">
+<label class="block text-[10px] text-neutral-500 mb-1.5" for="scriptEditor">编辑回评话术（保存后写入修改痕迹）</label>
+<textarea class="w-full min-h-[220px] border border-neutral-900 bg-white p-3 text-[13px] leading-6 focus:outline-none resize-y" id="scriptEditor"></textarea>
+<div class="mt-2 flex items-center justify-between gap-2">
+<span class="text-[10px] text-neutral-500" id="editHint">修改会记录操作人、时间和前后对照。</span>
+<div class="flex items-center gap-2">
+<button class="h-8 px-3 border border-neutral-300 bg-white text-[11px] hover:bg-neutral-50" id="cancelEdit" type="button">取消</button>
+<button class="h-8 px-3 border border-neutral-900 bg-neutral-900 text-white text-[11px] hover:bg-neutral-700" id="saveEdit" type="button">保存修改并留痕</button>
+</div>
+</div>
+</div>
+<div class="hidden mt-3 border border-neutral-300 bg-white px-3 py-2 text-[10px] text-neutral-600 flex items-center gap-2" id="editedNote">
+<svg aria-hidden="true" class="lucide lucide-pen-line text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M13 21h8m.174-14.188a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>已修改 1 版 · 操作人 林晓 · 修改已留痕</span>
+</div>
+<div class="mt-4">
+<div class="text-[10px] text-neutral-500 mb-2">程序校验</div>
+<div class="space-y-2">
+<div class="flex items-start gap-2">
+<svg aria-hidden="true" class="lucide lucide-circle-check text-[14px] mt-0.5" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="m9 12l2 2l4-4"></path></g></svg>
+<div class="leading-5">
+<div class="text-[11px]">禁区词扫描通过</div>
+<div class="text-[9px] text-neutral-500">扫描 1,286 条禁用词，0 命中</div>
+</div>
+</div>
+<div class="flex items-start gap-2">
+<svg aria-hidden="true" class="lucide lucide-circle-check text-[14px] mt-0.5" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="m9 12l2 2l4-4"></path></g></svg>
+<div class="leading-5">
+<div class="text-[11px]">格式校验通过</div>
+<div class="text-[9px] text-neutral-500">长度 186 字 · 无外部链接 · 无手机号</div>
+</div>
+</div>
+<div class="flex items-start gap-2">
+<svg aria-hidden="true" class="lucide lucide-circle-check text-[14px] mt-0.5" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="m9 12l2 2l4-4"></path></g></svg>
+<div class="leading-5">
+<div class="text-[11px]">联系方式检查通过</div>
+<div class="text-[9px] text-neutral-500">未包含微信号 / 二维码引导</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-4 border border-dashed border-neutral-400 bg-neutral-50 p-3">
+<div class="flex items-center justify-between gap-2">
+<span class="text-[11px] font-medium">分流置信度 0.92</span>
+<span class="text-[9px] border border-neutral-400 px-1 py-0.5">高置信</span>
+</div>
+<p class="mt-1.5 text-[11px] text-neutral-700">仅作分流信号，不构成质量保证。</p>
+<p class="mt-1 text-[9px] text-neutral-500 leading-4">高置信不代表可直接发送；话术事实、品牌语气与合规边界仍需人工核对。</p>
+</div>
+<div class="mt-4 space-y-2" id="workActions">
+<button class="w-full h-10 bg-neutral-900 text-white border border-neutral-900 text-[12px] font-medium hover:bg-neutral-700 inline-flex items-center justify-center gap-2" id="approveBtn" type="button">
+<svg aria-hidden="true" class="lucide lucide-shield-check text-[14px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12l2 2l4-4"></path></g></svg>
+                通过并发送…
+              </button>
+<div class="grid grid-cols-2 gap-2">
+<button class="h-9 border border-neutral-400 bg-white text-[11px] hover:bg-neutral-50 inline-flex items-center justify-center gap-1.5" id="editBtn" type="button">
+<svg aria-hidden="true" class="lucide lucide-pen-line text-[13px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M13 21h8m.174-14.188a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                  修改话术
+                </button>
+<button class="h-9 border border-neutral-400 bg-white text-[11px] hover:bg-neutral-50 inline-flex items-center justify-center gap-1.5" id="rejectBtn" type="button">
+<svg aria-hidden="true" class="lucide lucide-circle-x text-[13px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="m15 9l-6 6m0-6l6 6"></path></g></svg>
+                  驳回
+                </button>
+</div>
+<a class="w-full h-9 border border-neutral-300 bg-white text-[11px] text-neutral-700 hover:bg-neutral-50 inline-flex items-center justify-center gap-1.5" href="exceptions.html">
+<svg aria-hidden="true" class="lucide lucide-arrow-up-right text-[13px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M7 7h10v10M7 17L17 7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                转异常处理
+              </a>
+<p class="text-[9px] text-neutral-500 leading-4 text-center pt-1">点击“通过”仍需二次确认；发送动作只由当前登录人手动触发。</p>
+</div>
+<div class="hidden mt-4 border border-neutral-400 bg-neutral-50 p-3" id="rejectPanel">
+<div class="text-[11px] font-medium mb-2">驳回原因（必选）</div>
+<select class="w-full h-8 border border-neutral-300 bg-white px-2 text-[11px] focus:outline-none focus:border-neutral-900" id="rejectReason">
+<option value="">请选择驳回原因</option>
+<option value="风格不符">风格不符</option>
+<option value="事实错误">事实错误</option>
+<option value="合规存疑">合规存疑</option>
+<option value="其他">其他（需备注）</option>
+</select>
+<textarea class="mt-2 w-full h-16 border border-neutral-300 bg-white p-2 text-[11px] focus:outline-none focus:border-neutral-900 resize-none" id="rejectNote" placeholder="补充说明（可选，最多 200 字）"></textarea>
+<div class="mt-2 flex items-center justify-between gap-2">
+<button class="h-8 px-3 border border-neutral-300 bg-white text-[11px]" id="cancelReject" type="button">取消</button>
+<button class="h-8 px-3 border border-neutral-300 bg-neutral-200 text-neutral-400 text-[11px] cursor-not-allowed" disabled="" id="confirmReject" type="button">确认驳回（不发送）</button>
+</div>
+<p class="mt-2 text-[9px] text-neutral-500">驳回后不会发送任何内容，原因与操作人将写入留痕；驳回原因将进入驳回原因分布统计，用于迭代话术与闸口规则。</p>
+</div>
+<div class="hidden mt-4 border border-neutral-900 bg-neutral-900 text-white p-3" id="finalState">
+<div class="flex items-start gap-2">
+<svg aria-hidden="true" class="lucide lucide-circle-check text-[16px] mt-0.5" fill="none" focusable="false" height="1em" id="finalStateIcon" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="m9 12l2 2l4-4"></path></g></svg>
+<div>
+<div class="text-[11px] font-medium" id="finalStateTitle">已发送（人工确认）</div>
+<p class="text-[10px] text-neutral-300 mt-1 leading-4" id="finalStateNote">林晓 · 2026-11-03 14:36 · 发送动作由人工手动触发，系统无自动发送路径。</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="bg-white border border-neutral-300">
+<div class="px-4 py-3 border-b border-neutral-300 flex items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<svg aria-hidden="true" class="lucide lucide-history text-[15px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9a9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5m4-1v5l4 2"></path></g></svg>
+<h2 class="font-medium text-[14px]">处理留痕</h2>
+</div>
+<span class="text-[9px] text-neutral-500">只读记录</span>
+</div>
+<div class="p-4">
+<div class="flex items-center justify-between gap-3 border border-neutral-200 px-2.5 py-2">
+<div class="flex items-center gap-2">
+<span class="w-7 h-7 border border-neutral-400 flex items-center justify-center text-[10px]">林</span>
+<div class="leading-4">
+<div class="text-[11px]">林晓</div>
+<div class="text-[9px] text-neutral-500">客服运营 · 工号 CS-0217</div>
+</div>
+</div>
+<span class="text-[9px] text-neutral-500 mono">OPEN 14:20:11</span>
+</div>
+<ol class="mt-3 space-y-0" id="traceList">
+<li class="relative pl-4 pb-3 border-l border-neutral-300">
+<span class="absolute left-[-2.5px] top-1.5 w-[5px] h-[5px] bg-neutral-400"></span>
+<div class="text-[10px] text-neutral-900">打开单条审阅</div>
+<div class="text-[9px] text-neutral-500 mono">2026-11-03 14:20:11 · 林晓</div>
+</li>
+<li class="relative pl-4 pb-3 border-l border-neutral-300">
+<span class="absolute left-[-2.5px] top-1.5 w-[5px] h-[5px] bg-neutral-400"></span>
+<div class="text-[10px] text-neutral-900">AI 生成回评草稿</div>
+<div class="text-[9px] text-neutral-500 mono">2026-11-03 14:18:42 · 系统（未发送）</div>
+</li>
+<li class="relative pl-4">
+<span class="absolute left-[-2.5px] top-1.5 w-[5px] h-[5px] bg-neutral-400"></span>
+<div class="text-[10px] text-neutral-900">评论进入人工确认队列</div>
+<div class="text-[9px] text-neutral-500 mono">2026-11-03 14:18:42 · 系统分流</div>
+</li>
+</ol>
+<details class="mt-3 border border-neutral-200">
+<summary class="cursor-pointer px-3 py-2 text-[10px] flex items-center justify-between gap-2 hover:bg-neutral-50">
+<span>原文与终稿对照</span>
+<svg aria-hidden="true" class="lucide lucide-chevron-down text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m6 9l6 6l6-6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</summary>
+<div class="border-t border-neutral-200 p-3 space-y-3">
+<div>
+<div class="text-[9px] text-neutral-500 mb-1">AI 原文</div>
+<div class="text-[10px] leading-5 whitespace-pre-line border-l-2 border-neutral-300 pl-2 text-neutral-600">陈女士您好，感谢您对屿森面霜质地的认可，也谢谢您再次选择我们。
+
+敏感肌的耐受度因人而异，第一次使用建议先在耳后或下颌线少量试用，观察 24 小时无不适后再全脸使用。若使用中出现持续刺痛或泛红，请先暂停，并把使用情况告诉我们，我们会协助您处理。
+
+希望这次的使用体验能让您满意，有任何问题都可以随时联系屿森客服。</div>
+</div>
+<div>
+<div class="flex items-center justify-between gap-2 mb-1">
+<span class="text-[9px] text-neutral-500">当前终稿</span>
+<span class="text-[9px] text-neutral-500" id="diffMeta">尚未修改 · 与原文一致</span>
+</div>
+<div class="text-[10px] leading-5 whitespace-pre-line border-l-2 border-neutral-800 pl-2" id="finalCopy">陈女士您好，感谢您对屿森面霜质地的认可，也谢谢您再次选择我们。
+
+敏感肌的耐受度因人而异，第一次使用建议先在耳后或下颌线少量试用，观察 24 小时无不适后再全脸使用。若使用中出现持续刺痛或泛红，请先暂停，并把使用情况告诉我们，我们会协助您处理。
+
+希望这次的使用体验能让您满意，有任何问题都可以随时联系屿森客服。</div>
+</div>
+</div>
+</details>
+<div class="mt-3 flex items-start gap-2 text-[9px] text-neutral-500 leading-4">
+<svg aria-hidden="true" class="lucide lucide-lock text-[11px] mt-0.5 shrink-0" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect height="11" rx="2" ry="2" width="18" x="3" y="11"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></g></svg>
+<span>留痕包含操作人、时间、操作类型、AI 原文与终稿；发送动作无自动化入口，也不存在定时补发。</span>
+</div>
+</div>
+</section>
+</aside>
+</div>
+</main>
+<div class="hidden fixed inset-0 z-50 bg-neutral-900/50 p-4 items-center justify-center" id="approveOverlay">
+<div aria-labelledby="approveTitle" aria-modal="true" class="bg-white border border-neutral-500 w-full max-w-[520px] shadow-2xl" role="dialog">
+<div class="px-5 py-3.5 border-b border-neutral-300 flex items-start justify-between gap-3">
+<div>
+<div class="text-[9px] text-neutral-500 mono tracking-wider mb-0.5">SINGLE SEND CHECK</div>
+<h2 class="text-[16px] font-semibold" id="approveTitle">单条回评发送前确认</h2>
+</div>
+<button aria-label="关闭确认弹窗" class="w-8 h-8 border border-neutral-300 flex items-center justify-center hover:bg-neutral-100" id="closeApprove" type="button">
+<svg aria-hidden="true" class="lucide lucide-x text-[15px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M18 6L6 18M6 6l12 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<div class="p-5">
+<div class="border border-neutral-300 divide-y divide-neutral-200 text-[11px]">
+<div class="flex items-center justify-between px-3 py-2">
+<span class="text-neutral-500">评论条目</span>
+<span class="mono">RV-20261103-0842</span>
+</div>
+<div class="flex items-center justify-between px-3 py-2">
+<span class="text-neutral-500">品牌 / 分流</span>
+<span>屿森 · 正常回复</span>
+</div>
+<div class="flex items-center justify-between px-3 py-2">
+<span class="text-neutral-500">分流置信度</span>
+<span class="mono">0.92（仅分流信号）</span>
+</div>
+</div>
+<div class="mt-4 border border-neutral-900 bg-neutral-900 text-white p-3.5">
+<div class="flex items-start gap-2">
+<svg aria-hidden="true" class="lucide lucide-triangle-alert text-[15px] mt-0.5 shrink-0" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m21.73 18l-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3M12 9v4m0 4h.01" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<div>
+<div class="text-[12px] font-medium">平台不支持撤回已发回评——发送即不可逆</div>
+<p class="text-[10px] text-neutral-300 mt-1 leading-4">系统没有任何自动发送路径。本次发送仅由当前登录人手动触发，且只发送当前这一条。</p>
+</div>
+</div>
+</div>
+<label class="mt-4 flex items-start gap-2.5 border border-neutral-300 p-3 cursor-pointer hover:bg-neutral-50">
+<input class="w-4 h-4 mt-0.5 shrink-0" id="approveCheck" type="checkbox"/>
+<span class="text-[11px] leading-5">我已逐字核对回评话术和原始评论，理解发送后不可撤回，并确认由我本人手动触发本次发送。</span>
+</label>
+<div class="mt-3 text-[9px] text-neutral-500 leading-4">
+          留痕将记录：操作人 林晓、发送时间、评论 ID、AI 原文、当前终稿与平台回执。
+        </div>
+</div>
+<div class="px-5 py-3 border-t border-neutral-300 flex items-center justify-between gap-3">
+<button class="h-9 px-4 border border-neutral-300 bg-white text-[11px] hover:bg-neutral-50" id="cancelApprove" type="button">取消，不发送</button>
+<button class="h-9 px-4 border border-neutral-300 bg-neutral-200 text-neutral-400 text-[11px] cursor-not-allowed inline-flex items-center gap-2" disabled="" id="confirmApprove" type="button">
+<svg aria-hidden="true" class="lucide lucide-send text-[13px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11zm7.318-19.539l-10.94 10.939" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          确认并发送此条
+        </button>
+</div>
+</div>
+</div>
+<script>
+    const approveOverlay = document.getElementById('approveOverlay');
+    const approveCheck = document.getElementById('approveCheck');
+    const confirmApprove = document.getElementById('confirmApprove');
+    const scriptView = document.getElementById('scriptView');
+    const editorWrap = document.getElementById('editorWrap');
+    const scriptEditor = document.getElementById('scriptEditor');
+    const editedNote = document.getElementById('editedNote');
+    const rejectPanel = document.getElementById('rejectPanel');
+    const rejectReason = document.getElementById('rejectReason');
+    const confirmReject = document.getElementById('confirmReject');
+    const traceList = document.getElementById('traceList');
+    const workActions = document.getElementById('workActions');
+    const finalState = document.getElementById('finalState');
+    let editVersion = 0;
+
+    function nowStamp() {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      return '2026-11-03 ' + hh + ':' + mm + ':' + ss;
+    }
+
+    function addTrace(title, detail) {
+      const li = document.createElement('li');
+      li.className = 'relative pl-4 pb-3 border-l border-neutral-300';
+      const dot = document.createElement('span');
+      dot.className = 'absolute left-[-2.5px] top-1.5 w-[5px] h-[5px] bg-neutral-900';
+      const head = document.createElement('div');
+      head.className = 'text-[10px] text-neutral-900';
+      head.textContent = title;
+      const meta = document.createElement('div');
+      meta.className = 'text-[9px] text-neutral-500 mono';
+      meta.textContent = nowStamp() + ' · 林晓' + (detail ? ' · ' + detail : '');
+      li.appendChild(dot);
+      li.appendChild(head);
+      li.appendChild(meta);
+      traceList.insertBefore(li, traceList.firstChild);
+    }
+
+    function openApprove() {
+      approveOverlay.dataset.returnFocus = 'approveBtn';
+      approveOverlay.classList.remove('hidden');
+      approveOverlay.classList.add('flex');
+      approveCheck.checked = false;
+      syncApproveButton();
+      document.getElementById('closeApprove').focus();
+    }
+
+    function closeApprove() {
+      approveOverlay.classList.add('hidden');
+      approveOverlay.classList.remove('flex');
+      document.getElementById('approveBtn').focus();
+    }
+
+    function syncApproveButton() {
+      if (approveCheck.checked) {
+        confirmApprove.disabled = false;
+        confirmApprove.className = 'h-9 px-4 border border-neutral-900 bg-neutral-900 text-white text-[11px] cursor-pointer hover:bg-neutral-700 inline-flex items-center gap-2';
+      } else {
+        confirmApprove.disabled = true;
+        confirmApprove.className = 'h-9 px-4 border border-neutral-300 bg-neutral-200 text-neutral-400 text-[11px] cursor-not-allowed inline-flex items-center gap-2';
+      }
+    }
+
+    document.getElementById('approveBtn').addEventListener('click', openApprove);
+    document.getElementById('closeApprove').addEventListener('click', closeApprove);
+    document.getElementById('cancelApprove').addEventListener('click', closeApprove);
+    approveOverlay.addEventListener('click', function (event) {
+      if (event.target === approveOverlay) closeApprove();
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && !approveOverlay.classList.contains('hidden')) closeApprove();
+    });
+    approveCheck.addEventListener('change', syncApproveButton);
+
+    confirmApprove.addEventListener('click', function () {
+      if (!approveCheck.checked) return;
+      closeApprove();
+      document.getElementById('reviewStatus').innerHTML = '<span class="w-1 h-1 bg-white"></span>已发送 · 人工确认';
+      document.getElementById('reviewStatus').className = 'inline-flex items-center gap-1 border border-neutral-900 bg-neutral-900 text-white px-2 py-0.5 text-[10px]';
+      workActions.classList.add('hidden');
+      finalState.classList.remove('hidden');
+      addTrace('通过并发送此条回评', '人工触发 · 平台回执 1/1');
+    });
+
+    document.getElementById('editBtn').addEventListener('click', function () {
+      scriptEditor.value = scriptView.textContent.trim();
+      scriptView.classList.add('hidden');
+      editorWrap.classList.remove('hidden');
+      editedNote.classList.add('hidden');
+      scriptEditor.focus();
+    });
+
+    document.getElementById('cancelEdit').addEventListener('click', function () {
+      editorWrap.classList.add('hidden');
+      scriptView.classList.remove('hidden');
+    });
+
+    document.getElementById('saveEdit').addEventListener('click', function () {
+      const next = scriptEditor.value.trim();
+      const hint = document.getElementById('editHint');
+      if (next.length < 20) {
+        hint.textContent = '话术过短，至少保留 20 个字符后再保存。';
+        hint.className = 'text-[10px] text-neutral-900';
+        return;
+      }
+      editVersion += 1;
+      scriptView.textContent = next;
+      document.getElementById('finalCopy').textContent = next;
+      document.getElementById('diffMeta').textContent = '已修改 ' + editVersion + ' 版 · 终稿已更新';
+      scriptView.classList.remove('hidden');
+      editorWrap.classList.add('hidden');
+      editedNote.classList.remove('hidden');
+      addTrace('修改回评话术', '人工修改 ' + editVersion + ' 版 · 原文与终稿已对照');
+    });
+
+    document.getElementById('rejectBtn').addEventListener('click', function () {
+      rejectPanel.classList.remove('hidden');
+      rejectReason.focus();
+    });
+
+    document.getElementById('cancelReject').addEventListener('click', function () {
+      rejectPanel.classList.add('hidden');
+    });
+
+    function syncRejectButton() {
+      if (rejectReason.value) {
+        confirmReject.disabled = false;
+        confirmReject.className = 'h-8 px-3 border border-neutral-900 bg-neutral-900 text-white text-[11px] cursor-pointer hover:bg-neutral-700';
+      } else {
+        confirmReject.disabled = true;
+        confirmReject.className = 'h-8 px-3 border border-neutral-300 bg-neutral-200 text-neutral-400 text-[11px] cursor-not-allowed';
+      }
+    }
+
+    rejectReason.addEventListener('change', syncRejectButton);
+
+    confirmReject.addEventListener('click', function () {
+      if (!rejectReason.value) return;
+      rejectPanel.classList.add('hidden');
+      workActions.classList.add('hidden');
+      document.getElementById('reviewStatus').textContent = '已驳回 · 未发送';
+      document.getElementById('reviewStatus').className = 'inline-flex items-center gap-1 border border-neutral-400 border-dashed px-2 py-0.5 text-[10px]';
+      document.getElementById('finalStateTitle').textContent = '已驳回 · 未发送任何内容';
+      document.getElementById('finalStateNote').textContent = '驳回原因：' + rejectReason.value + ' · 林晓 · 2026-11-03 · 操作已留痕。';
+      document.getElementById('finalStateIcon').innerHTML = '<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></g>';
+      document.getElementById('finalState').classList.remove('hidden');
+      addTrace('驳回回评草稿', '原因：' + rejectReason.value + ' · 未发送');
+    });
+
+    document.getElementById('approveBtn').addEventListener('click', function () {
+      rejectPanel.classList.add('hidden');
+    });
+
+    document.getElementById('editBtn').addEventListener('click', function () {
+      rejectPanel.classList.add('hidden');
+    });
+  </script>
+</body>
+</html>

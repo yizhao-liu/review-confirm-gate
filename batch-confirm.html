@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>批量确认弹窗 · 回评确认闸</title>
+<style>
+    html { scrollbar-width: none; }
+    body { scrollbar-width: none; }
+    body::-webkit-scrollbar { display: none; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .wire-dots {
+      background-image: radial-gradient(circle, #d4d4d4 0.5px, transparent 0.5px);
+      background-size: 12px 12px;
+    }
+    .hatch {
+      background-image: repeating-linear-gradient(135deg, #fafafa, #fafafa 7px, #f1f1f1 7px, #f1f1f1 8px);
+    }
+    input[type="checkbox"] { accent-color: #171717; }
+    [hidden] { display: none !important; }
+    .modal-scroll { scrollbar-width: thin; scrollbar-color: #a3a3a3 transparent; }
+  </style>
+<link href="assets/prototype.css" rel="stylesheet"/><meta content="回评 Agent 人工确认闸四屏交互原型，使用合成数据演示，不产生真实发送。" name="description"/><link href="assets/favicon.svg" rel="icon" type="image/svg+xml"/></head>
+<body class="min-h-screen bg-neutral-100 text-neutral-900 antialiased text-[13px] leading-6"><div class="demo-notice" role="note">
+<strong>公开交互原型</strong>
+<span>全部品牌、评论、人员与数据均为虚构；操作仅模拟前端状态，不产生真实发送。</span>
+</div>
+<div aria-hidden="true" class="min-h-screen select-none pointer-events-none">
+<header class="bg-white border-b border-neutral-300">
+<div class="max-w-[1560px] mx-auto px-6 h-16 flex items-center justify-between gap-8">
+<div class="flex items-center gap-7">
+<div class="flex items-center gap-3">
+<span class="w-8 h-8 border border-neutral-900 flex items-center justify-center">
+<svg aria-hidden="true" class="lucide lucide-shield-check text-[17px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12l2 2l4-4"></path></g></svg>
+</span>
+<span>
+<span class="block text-[14px] font-semibold tracking-wide leading-5">回评确认闸</span>
+<span class="block text-[9px] text-neutral-500 mono tracking-[0.14em] leading-4">REVIEW CONFIRM GATE</span>
+</span>
+</div>
+<span class="h-7 w-px bg-neutral-300"></span>
+<div class="flex items-center gap-1 text-[13px]">
+<span class="px-3 py-2 bg-neutral-900 text-white">确认队列</span>
+<span class="px-3 py-2 text-neutral-600">异常处理</span>
+</div>
+</div>
+<div class="flex items-center gap-2.5">
+<span class="w-8 h-8 border border-neutral-400 flex items-center justify-center text-[12px]">林</span>
+<span class="leading-4">
+<span class="block text-[12px] font-medium">林晓</span>
+<span class="block text-[10px] text-neutral-500">客服运营 · 华东组</span>
+</span>
+</div>
+</div>
+</header>
+<div class="bg-neutral-900 text-white text-[12px]">
+<div class="max-w-[1560px] mx-auto px-6 py-2.5">所有回评须经人工确认后发送，系统不会自动发出任何回复。</div>
+</div>
+<main class="max-w-[1560px] mx-auto px-6 py-6">
+<div class="flex items-center justify-between mb-5">
+<div>
+<div class="mono text-[10px] text-neutral-500">QUEUE / MANUAL CONFIRMATION</div>
+<div class="text-[22px] font-semibold mt-1">确认队列</div>
+</div>
+<div class="text-[11px] text-neutral-500">仅正常回复与低置信转人工进入人工处理</div>
+</div>
+<div class="grid grid-cols-3 border border-neutral-300 bg-white mb-5">
+<div class="p-5 border-r border-neutral-300">
+<div class="text-[10px] text-neutral-500">待确认数</div>
+<div class="mono text-[28px] font-semibold mt-1">18</div>
+</div>
+<div class="p-5 border-r border-neutral-300">
+<div class="text-[10px] text-neutral-500">今日已确认数</div>
+<div class="mono text-[28px] font-semibold mt-1">42</div>
+</div>
+<div class="p-5">
+<div class="text-[10px] text-neutral-500">最早积压时长</div>
+<div class="mono text-[28px] font-semibold mt-1">3:12</div>
+</div>
+</div>
+<div class="border border-neutral-300 bg-white">
+<div class="px-4 py-3 border-b border-neutral-300 flex items-center justify-between">
+<div class="text-[12px]">筛选与检索</div>
+<div class="text-[10px] text-neutral-500">已选 4 条 · 批量确认</div>
+</div>
+<div class="divide-y divide-neutral-200">
+<div class="px-4 py-4 flex gap-4">
+<div class="w-4 h-4 border border-neutral-400 mt-1"></div>
+<div class="flex-1">
+<div class="h-2.5 bg-neutral-300 w-2/3"></div>
+<div class="h-2 bg-neutral-200 w-1/3 mt-2"></div>
+</div>
+<div class="w-24 h-2.5 bg-neutral-200 mt-1"></div>
+</div>
+<div class="px-4 py-4 flex gap-4">
+<div class="w-4 h-4 border border-neutral-400 mt-1"></div>
+<div class="flex-1">
+<div class="h-2.5 bg-neutral-300 w-1/2"></div>
+<div class="h-2 bg-neutral-200 w-1/4 mt-2"></div>
+</div>
+<div class="w-24 h-2.5 bg-neutral-200 mt-1"></div>
+</div>
+<div class="px-4 py-4 flex gap-4">
+<div class="w-4 h-4 border border-neutral-400 mt-1"></div>
+<div class="flex-1">
+<div class="h-2.5 bg-neutral-300 w-3/5"></div>
+<div class="h-2 bg-neutral-200 w-1/3 mt-2"></div>
+</div>
+<div class="w-24 h-2.5 bg-neutral-200 mt-1"></div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<div class="fixed inset-0 z-40 bg-neutral-900/60 p-3 md:p-6 overflow-y-auto modal-scroll" id="batchOverlay">
+<div class="min-h-full flex items-start md:items-center justify-center">
+<div aria-labelledby="batchTitle" aria-modal="true" class="bg-white border border-neutral-500 shadow-2xl w-full max-w-[900px] my-auto" role="dialog"><div class="demo-notice" role="note">
+<strong>公开交互原型</strong>
+<span>全部品牌、评论、人员与数据均为虚构；操作仅模拟前端状态，不产生真实发送。</span>
+</div>
+<div class="px-5 md:px-6 py-4 border-b border-neutral-300 flex flex-wrap items-start justify-between gap-3">
+<div class="flex items-start gap-3">
+<span class="w-9 h-9 border border-neutral-900 bg-neutral-900 text-white flex items-center justify-center shrink-0">
+<svg aria-hidden="true" class="lucide lucide-layers-2 text-[17px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M13 13.74a2 2 0 0 1-2 0L2.5 8.87a1 1 0 0 1 0-1.74L11 2.26a2 2 0 0 1 2 0l8.5 4.87a1 1 0 0 1 0 1.74zm7 .545l1.5.845a1 1 0 0 1 0 1.74L13 21.74a2 2 0 0 1-2 0l-8.5-4.87a1 1 0 0 1 0-1.74l1.5-.845" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</span>
+<div>
+<div class="flex flex-wrap items-center gap-2">
+<h1 class="text-[17px] leading-6 font-semibold" id="batchTitle">批量确认 · 发送前核对</h1>
+<span class="border border-neutral-900 px-1.5 py-0.5 text-[9px]">不可跳过</span>
+</div>
+<p class="text-[10px] text-neutral-500 mt-0.5">BATCH MANUAL CONFIRMATION · 批次 <span class="mono">BC-20261103-004</span></p>
+</div>
+</div>
+<div class="text-right text-[9px] text-neutral-500 leading-4">
+<div class="mono">2026-11-03 14:35:52</div>
+<div id="stepStatus">步骤 2 / 3 · 等待人工承诺</div>
+</div>
+</div>
+<div id="confirmBody">
+<div class="px-5 md:px-6 pt-4">
+<div class="flex items-center gap-1.5 text-[9px]">
+<span class="flex items-center gap-1 text-neutral-500">
+<span class="w-4 h-4 border border-neutral-300 flex items-center justify-center">1</span>
+                选择条目
+              </span>
+<span class="w-8 h-px bg-neutral-300"></span>
+<span class="flex items-center gap-1 text-neutral-900">
+<span class="w-4 h-4 bg-neutral-900 text-white flex items-center justify-center">2</span>
+                批量核对
+              </span>
+<span class="w-8 h-px bg-neutral-300"></span>
+<span class="flex items-center gap-1 text-neutral-400">
+<span class="w-4 h-4 border border-neutral-300 flex items-center justify-center">3</span>
+                手动发送
+              </span>
+</div>
+</div>
+<div class="px-5 md:px-6 py-4">
+<div class="border border-neutral-900 bg-neutral-900 text-white p-4">
+<div class="flex items-start gap-3">
+<svg aria-hidden="true" class="lucide lucide-triangle-alert text-[20px] mt-0.5 shrink-0" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m21.73 18l-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3M12 9v4m0 4h.01" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<div>
+<div class="text-[14px] font-medium">平台不支持撤回已发回评——发送即不可逆</div>
+<p class="text-[10px] text-neutral-300 mt-1 leading-5">确认后无法编辑、删除或撤回。请逐条核对下方回评，再勾选底部承诺。取消退出不会发送任何内容。</p>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 lg:grid-cols-4 border border-neutral-300 border-t-0 divide-x divide-y lg:divide-y-0 divide-neutral-300">
+<div class="p-3.5">
+<div class="flex items-center gap-1.5 text-[10px] text-neutral-500">
+<svg aria-hidden="true" class="lucide lucide-message-square-text text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2zM7 11h10M7 15h6M7 7h8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                  将发送回评
+                </div>
+<div class="mt-1.5 flex items-baseline gap-1">
+<span class="mono text-[24px] leading-none font-semibold" id="selectedCount">4</span>
+<span class="text-[10px] text-neutral-500">条</span>
+</div>
+</div>
+<div class="p-3.5">
+<div class="flex items-center gap-1.5 text-[10px] text-neutral-500">
+<svg aria-hidden="true" class="lucide lucide-building-2 text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M10 12h4m-4-4h4m0 13v-3a2 2 0 0 0-4 0v3"></path><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"></path><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"></path></g></svg>
+                  涉及品牌数
+                </div>
+<div class="mt-1.5 flex items-baseline gap-1">
+<span class="mono text-[24px] leading-none font-semibold" id="brandCount">3</span>
+<span class="text-[10px] text-neutral-500">个</span>
+</div>
+<div class="text-[9px] text-neutral-500 mt-1 truncate" id="brandSummary">屿森 ×2、沐岚、柏泽</div>
+</div>
+<div class="p-3.5">
+<div class="flex items-center gap-1.5 text-[10px] text-neutral-500">
+<svg aria-hidden="true" class="lucide lucide-gauge text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m12 14l4-4M3.34 19a10 10 0 1 1 17.32 0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                  临界置信度条目
+                </div>
+<div class="mt-1.5 flex items-baseline gap-1">
+<span class="mono text-[24px] leading-none font-semibold" id="criticalCount">2</span>
+<span class="text-[10px] text-neutral-500">条</span>
+</div>
+<div class="text-[9px] text-neutral-500 mt-1">低于阈值 0.72 · 已人工审阅</div>
+</div>
+<div class="p-3.5">
+<div class="flex items-center gap-1.5 text-[10px] text-neutral-500">
+<svg aria-hidden="true" class="lucide lucide-pen-line text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M13 21h8m.174-14.188a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                  曾被修改条目
+                </div>
+<div class="mt-1.5 flex items-baseline gap-1">
+<span class="mono text-[24px] leading-none font-semibold" id="modifiedCount">2</span>
+<span class="text-[10px] text-neutral-500">条</span>
+</div>
+<div class="text-[9px] text-neutral-500 mt-1">修改痕迹已随终稿记录</div>
+</div>
+</div>
+<div class="mt-4 border border-neutral-300">
+<div class="px-3.5 py-2.5 border-b border-neutral-300 bg-neutral-50 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="text-[11px] font-medium">本批次回评明细</span>
+<span class="mono text-[9px] border border-neutral-300 px-1.5 py-0.5">共 <span id="listCount">4</span> 条</span>
+</div>
+<span class="text-[9px] text-neutral-500">所有话术均为草稿，尚未发送</span>
+</div>
+<div class="divide-y divide-neutral-200" id="selectedList"></div>
+<div class="hidden p-8 text-center" id="emptySelection">
+<svg aria-hidden="true" class="lucide lucide-inbox text-[24px] text-neutral-400" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M22 12h-6l-2 3h-4l-2-3H2"></path><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11"></path></g></svg>
+<p class="text-[12px] font-medium mt-2">未选择任何回评</p>
+<p class="text-[10px] text-neutral-500 mt-1">没有可发送内容，请返回确认队列重新选择。</p>
+</div>
+</div>
+<div class="mt-4 border border-neutral-400 border-dashed bg-neutral-50 p-3.5">
+<div class="flex items-start gap-2.5">
+<svg aria-hidden="true" class="lucide lucide-lock text-[15px] mt-0.5 shrink-0" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect height="11" rx="2" ry="2" width="18" x="3" y="11"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></g></svg>
+<div>
+<div class="text-[11px] font-medium">系统没有任何自动发送路径</div>
+<p class="text-[10px] text-neutral-600 mt-1 leading-5">不存在定时任务、后台补发、失败重试或队列自动出队。本次批量发送仅由当前登录人手动触发，只提交上方明细中的回评。</p>
+</div>
+</div>
+</div>
+<div class="mt-4 grid grid-cols-1 md:grid-cols-[1fr_1.1fr] gap-3">
+<div class="border border-neutral-300 p-3">
+<div class="flex items-center gap-1.5 text-[10px] text-neutral-500 mb-2">
+<svg aria-hidden="true" class="lucide lucide-history text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9a9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5m4-1v5l4 2"></path></g></svg>
+                  操作留痕说明
+                </div>
+<div class="space-y-1.5 text-[10px] leading-5">
+<div class="flex justify-between gap-3">
+<span class="text-neutral-500">操作人</span>
+<span>林晓 · CS-0217</span>
+</div>
+<div class="flex justify-between gap-3">
+<span class="text-neutral-500">确认时间</span>
+<span class="mono">2026-11-03 14:35</span>
+</div>
+<div class="flex justify-between gap-3">
+<span class="text-neutral-500">记录范围</span>
+<span class="text-right">评论 ID / AI 原文 / 终稿 / 回执</span>
+</div>
+<div class="flex justify-between gap-3">
+<span class="text-neutral-500">留痕状态</span>
+<span>不可删除 · 可审计</span>
+</div>
+</div>
+</div>
+<div class="border border-neutral-300 p-3">
+<div class="flex items-center gap-1.5 text-[10px] text-neutral-500 mb-2">
+<svg aria-hidden="true" class="lucide lucide-list-checks text-[12px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M13 5h8m-8 7h8m-8 7h8M3 17l2 2l4-4M3 7l2 2l4-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                  本次核对重点
+                </div>
+<ul class="space-y-1 text-[10px] leading-5 text-neutral-600">
+<li class="flex gap-2"><span class="mono text-neutral-400">01</span><span>临界置信度条目的回评是否已人工复核。</span></li>
+<li class="flex gap-2"><span class="mono text-neutral-400">02</span><span>曾被修改话术的终稿是否与品牌语气一致。</span></li>
+<li class="flex gap-2"><span class="mono text-neutral-400">03</span><span>发送后不可撤回，确认没有误选条目。</span></li>
+</ul>
+</div>
+</div>
+<label class="mt-4 flex items-start gap-3 border border-neutral-400 bg-white p-3.5 cursor-pointer hover:bg-neutral-50">
+<input class="w-4 h-4 mt-0.5 shrink-0" id="commitCheck" type="checkbox"/>
+<span class="text-[11px] leading-5" id="commitText">我已逐条核对以上 4 条回评及修改内容，理解发送即不可逆；我确认系统没有任何自动发送路径，本次发送由我本人手动触发。</span>
+</label>
+</div>
+<div class="px-5 md:px-6 py-3.5 border-t border-neutral-300 flex flex-wrap items-center justify-between gap-3 bg-neutral-50">
+<a class="inline-flex items-center gap-1.5 h-9 px-3 border border-neutral-300 bg-white text-[11px] hover:bg-neutral-100" href="queue.html">
+<svg aria-hidden="true" class="lucide lucide-arrow-left text-[13px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m12 19l-7-7l7-7m7 7H5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+              取消并返回队列（不发送）
+            </a>
+<div class="flex items-center gap-3">
+<span class="text-[9px] text-neutral-500">未勾选承诺时不可发送</span>
+<button class="h-10 px-5 border border-neutral-300 bg-neutral-200 text-neutral-400 text-[12px] cursor-not-allowed inline-flex items-center gap-2" disabled="" id="sendButton" type="button">
+<svg aria-hidden="true" class="lucide lucide-send text-[14px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11zm7.318-19.539l-10.94 10.939" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span id="sendButtonLabel">确认并发送 4 条回评</span>
+</button>
+</div>
+</div>
+</div>
+<div class="hidden" id="resultBody">
+<div class="p-6 md:p-8">
+<div class="w-11 h-11 border border-neutral-900 bg-neutral-900 text-white flex items-center justify-center mb-4">
+<svg aria-hidden="true" class="lucide lucide-check text-[22px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<h2 class="text-[19px] font-semibold">已完成模拟发送 <span id="resultCount">4</span> 条回评</h2>
+<p class="text-[11px] text-neutral-600 mt-1.5">本次仅演示人工确认后的前端状态变化，未连接真实平台，也不会发送任何内容；下方回执为模拟信息。</p>
+<div class="mt-5 border border-neutral-300">
+<div class="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-neutral-300">
+<div class="p-3.5"><div class="text-[9px] text-neutral-500">批次号</div><div class="mono text-[12px] mt-1">BC-20261103-004</div></div>
+<div class="p-3.5">
+<div class="text-[9px] text-neutral-500">模拟平台回执</div>
+<div class="text-[12px] mt-1"><span id="receiptCount">4</span> / <span id="receiptTotal">4</span> 已接收</div>
+</div>
+<div class="p-3.5 border-t border-neutral-300">
+<div class="text-[9px] text-neutral-500">操作人</div>
+<div class="text-[12px] mt-1">林晓 · 客服运营 · CS-0217</div>
+</div>
+<div class="p-3.5 border-t border-neutral-300">
+<div class="text-[9px] text-neutral-500">模拟发送时间</div>
+<div class="mono text-[12px] mt-1" id="sentAt">2026-11-03 14:36:10</div>
+</div>
+</div>
+</div>
+<div class="mt-4 border border-dashed border-neutral-400 p-3.5">
+<div class="flex items-start gap-2">
+<svg aria-hidden="true" class="lucide lucide-history text-[14px] mt-0.5 shrink-0" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9a9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5m4-1v5l4 2"></path></g></svg>
+<div>
+<div class="text-[11px] font-medium">模拟操作留痕已生成</div>
+<p class="text-[10px] text-neutral-500 mt-1 leading-5">记录包含操作人、发送时间、条目 ID、AI 原文、人工终稿、逐条平台回执与本次承诺勾选状态。</p>
+</div>
+</div>
+</div>
+<div class="mt-5 flex flex-wrap items-center gap-3">
+<a class="h-10 px-4 bg-neutral-900 text-white text-[12px] inline-flex items-center gap-2 hover:bg-neutral-700" href="queue.html">
+<svg aria-hidden="true" class="lucide lucide-arrow-left text-[14px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m12 19l-7-7l7-7m7 7H5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                返回确认队列
+              </a>
+<a class="h-10 px-4 border border-neutral-300 bg-white text-[11px] inline-flex items-center gap-2 hover:bg-neutral-50" href="exceptions.html">
+                前往异常处理队列
+                <svg aria-hidden="true" class="lucide lucide-chevron-right text-[13px]" fill="none" focusable="false" height="1em" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m9 18l6-6l-6-6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+    const draftItems = [
+      {
+        id: 'RV-20261103-0842',
+        brand: '屿森',
+        category: '正常回复',
+        comment: '包装很用心，面霜质地比上次清爽，敏感肌上脸没有刺痛，会回购。',
+        script: '感谢您对质地的认可。敏感肌建议先在耳后试用，如有不适请暂停使用并联系我们。',
+        conf: 0.92,
+        modified: false
+      },
+      {
+        id: 'RV-20261103-0839',
+        brand: '沐岚',
+        category: '低置信转人工',
+        comment: '直播间说买一送一，收到的却是小样，申请补发一直没人回复。',
+        script: '您反馈的赠品差异我们已记录，将转交售后同事核实，请保持电话畅通。',
+        conf: 0.58,
+        modified: false
+      },
+      {
+        id: 'RV-20261103-0831',
+        brand: '露华妍',
+        category: '正常回复',
+        comment: '精华吸收快，但滴管不太好取，希望改进包装。',
+        script: '感谢您的建议，滴管取量问题已反馈产品团队，后续会持续优化包装体验。',
+        conf: 0.86,
+        modified: true
+      },
+      {
+        id: 'RV-20261103-0824',
+        brand: '柏泽',
+        category: '低置信转人工',
+        comment: '香味有点重，不确定是不是正品，能给个解释吗？',
+        script: '关于气味感受存在个体差异，商品均为品牌官方渠道发货，可提供批次信息供您核对。',
+        conf: 0.61,
+        modified: true
+      },
+      {
+        id: 'RV-20261103-0812',
+        brand: '初萃',
+        category: '正常回复',
+        comment: '第二次买了，冬天用刚好，不搓泥。',
+        script: '感谢复购，冬季建议搭配面霜锁水，如有搓泥情况可减少叠加用量。',
+        conf: 0.78,
+        modified: false
+      },
+      {
+        id: 'RV-20261103-0805',
+        brand: '沐岚',
+        category: '正常回复',
+        comment: '客服回复很快，物流也准时，已经推荐给同事。',
+        script: '感谢您的认可和推荐，后续有任何使用问题都可以随时联系我们。',
+        conf: 0.94,
+        modified: false
+      }
+    ];
+
+    const params = new URLSearchParams(window.location.search);
+    let selected = [];
+    if (params.has('ids')) {
+      const selectedIds = params.get('ids').split(',').map(function (id) {
+        return id.trim();
+      }).filter(Boolean);
+      selected = draftItems.filter(function (item) {
+        return selectedIds.includes(item.id);
+      });
+    }
+    if (selected.length === 0) {
+      let requestedCount = Number(params.get('n'));
+      if (!Number.isFinite(requestedCount) || requestedCount <= 0) requestedCount = 4;
+      requestedCount = Math.max(0, Math.min(requestedCount, draftItems.length));
+      selected = draftItems.slice(0, requestedCount);
+    }
+
+    const selectedCountEl = document.getElementById('selectedCount');
+    const brandCountEl = document.getElementById('brandCount');
+    const brandSummaryEl = document.getElementById('brandSummary');
+    const criticalCountEl = document.getElementById('criticalCount');
+    const modifiedCountEl = document.getElementById('modifiedCount');
+    const listCountEl = document.getElementById('listCount');
+    const selectedListEl = document.getElementById('selectedList');
+    const emptySelectionEl = document.getElementById('emptySelection');
+    const commitCheck = document.getElementById('commitCheck');
+    const commitText = document.getElementById('commitText');
+    const sendButton = document.getElementById('sendButton');
+    const sendButtonLabel = document.getElementById('sendButtonLabel');
+
+    const brands = Array.from(new Set(selected.map(function (item) { return item.brand; })));
+    const criticalCount = selected.filter(function (item) { return item.conf < 0.72; }).length;
+    const modifiedCount = selected.filter(function (item) { return item.modified; }).length;
+    const brandTally = {};
+    selected.forEach(function (item) {
+      brandTally[item.brand] = (brandTally[item.brand] || 0) + 1;
+    });
+    const brandSummary = Object.keys(brandTally).map(function (brand) {
+      return brand + ' ×' + brandTally[brand];
+    }).join('、');
+
+    selectedCountEl.textContent = String(selected.length);
+    brandCountEl.textContent = String(brands.length);
+    brandSummaryEl.textContent = brandSummary || '无';
+    criticalCountEl.textContent = String(criticalCount);
+    modifiedCountEl.textContent = String(modifiedCount);
+    listCountEl.textContent = String(selected.length);
+    sendButtonLabel.textContent = '确认并发送 ' + selected.length + ' 条回评';
+    commitText.textContent = '我已逐条核对以上 ' + selected.length + ' 条回评及修改内容，理解发送即不可逆；我确认系统没有任何自动发送路径，本次发送由我本人手动触发。';
+    document.getElementById('resultCount').textContent = String(selected.length);
+    document.getElementById('receiptCount').textContent = String(selected.length);
+    document.getElementById('receiptTotal').textContent = String(selected.length);
+
+    if (selected.length === 0) {
+      emptySelectionEl.classList.remove('hidden');
+      commitCheck.disabled = true;
+      document.getElementById('commitText').closest('label').classList.add('opacity-50');
+    } else {
+      selectedListEl.innerHTML = selected.map(function (item) {
+        const isCritical = item.conf < 0.72;
+        const criticalBadge = isCritical
+          ? '<span class="border border-neutral-900 bg-neutral-900 text-white px-1 py-0.5 text-[8px]">临界</span>'
+          : '';
+        const modifiedBadge = item.modified
+          ? '<span class="border border-neutral-300 px-1 py-0.5 text-[8px]">已改 · 2 处</span>'
+          : '<span class="text-[9px] text-neutral-500">未改</span>';
+        return '' +
+          '<div class="px-3.5 py-3 grid grid-cols-1 md:grid-cols-[128px_minmax(0,1fr)_92px] gap-2 md:gap-3">' +
+            '<div>' +
+              '<div class="text-[11px] font-medium">' + item.brand + '</div>' +
+              '<div class="mono text-[8px] text-neutral-500 mt-0.5">' + item.id + '</div>' +
+              '<div class="mt-1"><span class="border border-neutral-300 px-1 py-0.5 text-[8px]">' + item.category + '</span></div>' +
+            '</div>' +
+            '<div class="min-w-0">' +
+              '<div class="text-[11px] leading-5">' + item.comment + '</div>' +
+              '<div class="mt-1 text-[9px] text-neutral-500 leading-4 line-clamp-1">话术：' + item.script + '</div>' +
+            '</div>' +
+            '<div class="flex md:block items-center md:text-right justify-between gap-2">' +
+              '<div class="flex items-center md:justify-end gap-1.5">' +
+                '<span class="mono text-[13px] font-medium">' + item.conf.toFixed(2) + '</span>' +
+                criticalBadge +
+              '</div>' +
+              '<div class="mt-1">' + modifiedBadge + '</div>' +
+            '</div>' +
+          '</div>';
+      }).join('');
+    }
+
+    function syncSendButton() {
+      if (commitCheck.checked && selected.length > 0) {
+        sendButton.disabled = false;
+        sendButton.className = 'h-10 px-5 border border-neutral-900 bg-neutral-900 text-white text-[12px] cursor-pointer hover:bg-neutral-700 inline-flex items-center gap-2';
+      } else {
+        sendButton.disabled = true;
+        sendButton.className = 'h-10 px-5 border border-neutral-300 bg-neutral-200 text-neutral-400 text-[12px] cursor-not-allowed inline-flex items-center gap-2';
+      }
+    }
+
+    function cancelBatch() {
+      window.location.href = 'queue.html';
+    }
+    batchOverlay.addEventListener('click', function (event) {
+      if (event.target === batchOverlay || event.target === batchOverlay.firstElementChild) cancelBatch();
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') cancelBatch();
+    });
+    commitCheck.addEventListener('change', syncSendButton);
+    syncSendButton();
+
+    sendButton.addEventListener('click', function () {
+      if (!commitCheck.checked || selected.length === 0) return;
+      document.getElementById('confirmBody').classList.add('hidden');
+      document.getElementById('resultBody').classList.remove('hidden');
+      document.getElementById('batchTitle').textContent = '批量确认 · 模拟结果';
+      document.getElementById('stepStatus').textContent = '步骤 3 / 3 · 模拟流程完成';
+      const sentAt = document.getElementById('sentAt');
+      const now = new Date();
+      const time = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
+      sentAt.textContent = '2026-11-03 ' + time;
+      document.getElementById('batchOverlay').scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  </script>
+</body>
+</html>
